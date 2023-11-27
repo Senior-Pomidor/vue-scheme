@@ -7,6 +7,13 @@
 
 ## Vue 3 + Vite
 
+## Demo dev
+
+1. yarn
+2. yarn dev
+3. открыть http://localhost:8088
+4. нажать кнопку **fetch places** чтобы прокинуть места в схему
+
 ## Встраивание схемы на внешнюю страницу
 (пример внутри в [index.html](/index.html))
 
