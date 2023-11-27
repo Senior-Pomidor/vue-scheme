@@ -19,7 +19,7 @@
 
 1. Создать на странице блок с id="vue_hall_scheme_app"
 ```html
-<div id="#vue_hall_scheme_app"></div>
+<div id="vue_hall_scheme_app"></div>
 ```
 
 2. Подключить скрипты схемы в html
