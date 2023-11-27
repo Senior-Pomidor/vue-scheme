@@ -1,0 +1,39 @@
+.container {
+  width: 95%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.hide-xs {
+  .respond-to(xs, {
+    display: none;
+  });
+}
+
+.show-xs {
+  .respond-to(xs, {
+    display: block;
+  });
+
+  &._i {
+    .respond-to(xs, {
+      display: inline;
+    });
+  }
+
+  &._ib {
+    .respond-to(xs, {
+      display: inline-block;
+    });
+  }
+
+  &._f {
+    .respond-to(xs, {
+      display: flex;
+    });
+  }
+}

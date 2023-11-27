@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue Hall Scheme App ksadlkasdlk</title>
+
+    <style>
+      #vue_hall_scheme_app {
+        width: 1440px;
+        max-width: 95%;
+        margin: 0 auto;
+        height: 70vh;
+        border: 1px solid blue;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="fetchSelectionBtn" style="margin-left: 500px;">fetch places</button>
+    <button id="confirmSelectionBtn">confirm selection</button>
+
+    <section id="vue_hall_scheme_app"></section>
+
+    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="map.js"></script>
+
+    <script type="module">
+      import { MAP_PLACES } from './map.js'
+      const places = MAP_PLACES
+
+      const fetchSelectionBtn = document.getElementById('fetchSelectionBtn')
+      const confirmSelectionBtn = document.getElementById('confirmSelectionBtn')
+      const hallSchemeApp = window.hallSchemeApp
+
+      fetchSelectionBtn.onclick = () => {
+        hallSchemeApp.setSchemeSeatsToApp(places)
+      }
+
+      hallSchemeApp.setSelectionFilters({
+        attrs: {
+          opened: true,
+          reserve_status: ['available', 'by_user'],
+        }
+      })
+
+      confirmSelectionBtn.onclick = () => {
+        const placesIds = hallSchemeApp.getSelectedSeats()
+
+        console.log(placesIds)
+
+        for (let id in placesIds) {
+          places[id].border_color = 'none'
+          places[id].reserve_status = 'by_user'
+          places[id].bg_color = 'red'
+        }
+
+        const newPlaces = structuredClone(places)
+
+        hallSchemeApp.setSchemeSeatsToApp(newPlaces)
+      }
+    </script>
+  </body>
+</html>

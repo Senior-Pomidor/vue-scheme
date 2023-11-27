@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "target": "esnext",
+    // "checkJs": true, // проверка типов
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}

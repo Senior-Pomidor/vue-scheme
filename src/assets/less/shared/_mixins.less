@@ -1,0 +1,98 @@
+// задаем переменные для брейкпоинтов
+@breakpoints: {
+    xs: 720px;
+    sm: 920px;
+    md: 1024px;
+    lg: 1200px;
+    xl: 1440px;
+}
+
+.respond-to(@bp, @styles) {
+    // в @media (max-width: @breakpoints[@bp]) не принимаются переменные (@bp)
+    // для добавления нового брейкпоинта нужно добавить блок с названием этого брейкпоинта
+    & when (@bp = xs) {
+        @media (max-width: @breakpoints[xs]) {
+            @styles();
+        }
+    }
+
+    & when (@bp = sm) {
+        @media (max-width: @breakpoints[sm]) {
+            @styles();
+        }
+    }
+
+    & when (@bp = md) {
+        @media (max-width: @breakpoints[md]) {
+            @styles();
+        }
+    }
+
+    & when (@bp = lg) {
+        @media (max-width: @breakpoints[lg]) {
+            @styles();
+        }
+    }
+
+    & when (@bp = xl) {
+        @media (max-width: @breakpoints[xl]) {
+            @styles();
+        }
+    }
+}
+
+// пример использования миксина
+// .my-class {
+//     color: red;
+
+//     .respond-to(sm, {
+//         color: blue;
+
+//         .nested-class {
+//             font-size: 2rem;
+//         }
+//     });
+
+//     .respond-to(xs, {
+//         color: violet;
+//     });
+// }
+
+.hover(@styles) {
+    &:hover {
+
+        @media (hover: hover),
+        (-ms-high-contrast: none),
+        (-ms-high-contrast: active) {
+            @styles();
+        }
+    }
+}
+
+.touch(@styles) {
+    @media (pointer: coarse) {
+        @styles();
+    }
+}
+
+.font(@alias, @name, @weight, @style: normal) {
+    @font-face {
+        font-family: @alias;
+        src: url('../../fonts/@{name}.woff2') format('woff2'),
+                url('../../fonts/@{name}.woff') format('woff');
+        font-weight: @weight;
+        font-style: @style;
+        font-display: swap;
+    }
+}
+
+// .font(@alias, @name, @weight, @style: normal) {
+//     @font-face {
+//         font-family: @alias;
+//         src: ~"url('~~assets/fonts/@{name}.woff2') format('woff2')",
+//             ~"url('~~assets/fonts/@{name}.woff') format('woff')";
+//         font-weight: @weight;
+//         font-style: @style;
+//         font-display: swap;
+//     }
+// }
