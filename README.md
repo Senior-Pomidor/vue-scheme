@@ -1,24 +1,101 @@
-# [<span style="color: #15b881">Hall Scheme</span>](https://senior-pomidor.github.io/vue_scheme_prototype/)
+# [<span style="color: #15b881">Hall Scheme View</span>](https://gitlab.rambler.ru/listim/hall-schema-view)
 ## Node.js version
 
-<span style="color: orange">16.17.0</span>
+<span style="color: #15b881">16.20.0</span>
 
-### Package manager - <span style="color: orange">Yarn</span>
+### Package manager - <span style="color: #15b881">Yarn</span>
 
 ## Vue 3 + Vite
 
-## Встраивание схемы
+## Встраивание схемы на внешнюю страницу
+(пример внутри в [index.html](/index.html))
 
-Блок для встраивания - **#vue_hall_scheme_app**
+1. Создать на странице блок с id="vue_hall_scheme_app"
+```html
+<div id="#vue_hall_scheme_app"></div>
+```
 
+2. Подключить скрипты схемы в html
+- DEV with HMR
+    ```html
+    <script type="module" src="http://localhost:8088/@vite/client"></script>
+    <script type="module" src="http://localhost:8088/src/main.js"></script>
+    ```
+- BUILD
+    ```html
+    <link rel="stylesheet" href="<PATH_TO_BUILD_DIR>/style.css">
+    <script src="<PATH_TO_BUILD_DIR>/vue_hall_scheme_app.umd.js"></script>
+    ```
+    <PATH_TO_BUILD_DIR> - указан в vite.config.js
+По дефолту dist
+
+3. Вызвать метод **window.hallSchemeApp.setSchemeSeatsToApp(seats)** чтобы прокинуть места на схему
+
+**У схемы нет размеров. Она заполняет 100% ширины и высоты блока, в который встраивается.**
+
+
+
+
+## Взаимодействие со схемой
 Для взаимодействия со схемой используется класс **window.hallSchemeApp**
+Его методы генерят события на элементе, куда встраивается схема.
+Передача данных осуществляется путём вызова методов и подписки на события.
 
-### window.hallSchemeApp API
+Описание ниже.
+
+Схема принимает и возвращет данные в одинаковом формате.
+
+#### Формат данных для схемы:
+```javascript
+// seats
+{
+  28788409: {
+    id: 28788409,
+    row: '2',
+    seat: '26',
+    coord_x: 1338,
+    coord_y: 288,
+    location_place_id: 28788409,
+    eplace_id: 12345621,
+    sector: {
+      id: 318746,
+      name: 'Балкон 3-го яруса',
+      is_simple: false,
+    },
+    opened: true, // место оценено
+    reserve_status: 'by_user' // 'closed' | 'available' | 'reserved'
+    price: 100,
+    bg_color: '#a99498',
+    border_color: 'red',
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
+  },
+  // ...
+}
+```
+
+
+## window.hallSchemeApp
 Поля
-- events (enum) - названия событий, генерируемых методами класса
+- events (enum) - названия событий, генерируемых методами класса. Совпадают с названиями методов.
 
-Методы
+Методы внешние
 - getRootElement() {Element} - элемент, в который встроена схема и на котором генерируются события
-- setSchemeSeatsToApp(array[obj {id: {seat}}]) {void} - установить места на схеме
-- getSelectedSeatsIds() {array[str id]} - получить массив id выделенных мест
+- setSchemeSeatsToApp({id: {seat}}) {void} - установить места на схеме
+- getSelectedSeats() {{id: {seat}}} - получить выделенные места
 - on(str event, handler()) {void} - коллбэк на события, генерируемые методами класса
+- setSelectionFilters({filter_name: value}) {void} - установить фильтры, по которым выбираются места, с которыми можно взаимодействовать (выделять)
+
+
+## Пользовательские действия на схеме
+- Клик по месту -- выделение/снятие выделение
+- ЛКМ + тащить -- выделить область мест (рамка-выделение)
+- Ctrl/Command + ЛКМ + тащить у-- снять выделение с области мест
+- Ctrl/Command + z -- отменить последнее действие с выделением мест
+- Shift + ЛКМ - перемещение
+- Scroll - масштабирование

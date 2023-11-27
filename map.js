@@ -1,5 +1,4 @@
 // Места для SVG схемы зала
-// Взяты со схемы с виджета
 
 // const seats = {
 //   28788409: {
@@ -16,8 +15,8 @@
 //       is_simple: false,
 //     },
 //     opened: true, // доступно для резервации в принципе
-//     reserve_status: 'by_user' // 'available' | 'reserved'
-//     pricblack0,
+//     reserve_status: 'by_user', // 'available' | 'reserved'
+//     price: 0,
 //     status: 'prodanoCherezKred',
 //     bg_color: '#a99498',
 //     border_color: 'red',

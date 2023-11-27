@@ -22,7 +22,8 @@ export default defineConfig({
   build: {
     minify: 'terser',
     // emptyOutDir: true,
-    outDir: path.resolve(__dirname, './../public/css_js/admin/hall_scheme_app'),
+    outDir: path.resolve(__dirname, './dist'),
+    // outDir: path.resolve(__dirname, './../public/css_js/admin/hall_scheme_app'),
     lib: {
       entry: path.resolve(__dirname, 'src/main.js'),
       name: 'vue_hall_scheme_app',

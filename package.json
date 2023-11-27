@@ -1,15 +1,23 @@
 {
-  "name": "vue_hall_scheme",
+  "name": "vue_hall_scheme_view",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "author": "Afisha tickets",
+  "description": "Vue app for rendering hall schema",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.rambler.ru/listim/hall-schema-view"
+  },
+  "publishConfig":{
+    "registry": "artifactory url"
+  },
   "scripts": {
     "dev": "vite",
     "start": "vite",
     "build": "vite build",
     "build:deploy": "vite build; npm run deploy",
-    "deploy": "git add -f dist && git commit -m 'deploy' && git push origin `git subtree split --prefix dist svg`:gh-pages --force && git add -A && git commit -m 'commit changes before deploy'",
+    "deploy": "git add -f dist && git commit -m 'deploy' && git push origin `git subtree split --prefix dist master`:gh-pages --force && git add -A && git commit -m 'commit changes before deploy'",
     "preview": "vite preview",
     "el:check": "eslint --ext .js,.vue --ignore-path .eslintignore src",
     "el:fix": "eslint --ext .js,.vue --ignore-path .eslintignore --fix src"

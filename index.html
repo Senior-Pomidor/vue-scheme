@@ -37,10 +37,12 @@
         hallSchemeApp.setSchemeSeatsToApp(places)
       }
 
+
+      // фильтр выделения мест
       hallSchemeApp.setSelectionFilters({
         attrs: {
           opened: true,
-          reserve_status: ['available', 'by_user'],
+          reserve_status: ['available', 'reserved_my'],
         }
       })
 
@@ -49,14 +51,19 @@
 
         console.log(placesIds)
 
+        // HACK: имитация бэка
+        // вместо этого нужно обновить места на бэке,
+        // и получить новые места
         for (let id in placesIds) {
           places[id].border_color = 'none'
-          places[id].reserve_status = 'by_user'
+          places[id].reserve_status = 'reserved_my'
           places[id].bg_color = 'red'
         }
 
         const newPlaces = structuredClone(places)
+        // HACK: имитация бэка
 
+        // прокидываем обновлённые места в схему
         hallSchemeApp.setSchemeSeatsToApp(newPlaces)
       }
     </script>
