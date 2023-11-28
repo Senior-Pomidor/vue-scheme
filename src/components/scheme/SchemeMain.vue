@@ -738,7 +738,7 @@
   const tooltipParent = ref('')
 
   const onSeatHover = seat => {
-    tooltipHtml.value = seat.tooltip?.html || ''
+    tooltipHtml.value = seat.additional?.tooltip?.html || ''
     tooltipParent.value = `[id="${seat.id}"]`
 
     isTooltip.value = true
@@ -785,14 +785,19 @@
               // _opened: mapPlace.opened,
               _unselected: currentUnSelectedSeats[mapPlace.id],
             }"
+            :seat-width="mapPlace.styles?.width || 20"
+            :seat-height="mapPlace.styles?.height || 20"
             :selectable="!!getQuotaSeats[mapPlace.id]"
             :seat="mapPlace"
-            :seat-width="props.config.seat_width || 20"
-            :seat-height="props.config.seat_height || 20"
             @click="handleClick(mapPlace.id)"
             @mouseover="onSeatHover(mapPlace)"
             @mouseleave="isTooltip = false"
           />
+
+          <!--
+            :seat-width="props.config.seat_width || 20"
+            :seat-height="props.config.seat_height || 20"
+          -->
         </g>
       </g>
 

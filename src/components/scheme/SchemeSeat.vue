@@ -9,10 +9,10 @@
       :height="props.seatHeight + 2"
       :x="props.seat.coord_x"
       :y="props.seat.coord_y"
-      rx="3"
-      ry="3"
-      :fill="props.seat.bg_color || '#a99498'"
-      :stroke="props.seat.border_color || 'none'"
+      :rx="props.seat.styles?.rx || 3"
+      :ry="props.seat.styles?.ry || 3"
+      :fill="props.seat.styles?.bg_color || '#a99498'"
+      :stroke="props.seat.styles?.border_color || 'none'"
       :stroke-width="2"
     >
     </rect>
@@ -56,20 +56,22 @@
       :transform="`translate(${props.seat.coord_x || 0} ${props.seat.coord_y || 0})`"
     >
       <tspan
+        v-if="seat.additional?.seat"
         :x="seatWidth - 1"
         :y="seatHeight - 9"
         text-anchor="end"
         class="seat__seat"
       >
-        {{ seat.seat }}
+        {{ seat.additional.seat }}
       </tspan>
       <tspan
+        v-if="seat.additional?.row"
         :x="2"
         :y="seatHeight - 2"
         text-anchor="start"
         class="seat__row"
       >
-        {{ seat.row }}
+        {{ seat.additional.row }}
       </tspan>
     </text>
   </g>

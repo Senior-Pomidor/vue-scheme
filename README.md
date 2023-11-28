@@ -45,7 +45,7 @@
 
 ## Взаимодействие со схемой
 Для взаимодействия со схемой используется класс **window.hallSchemeApp** <br>
-Его методы генерят события на элементе, куда встраивается схема. <br>
+Его методы генерят одноимённые события на элементе, куда встраивается схема. <br>
 Передача данных осуществляется путём вызова методов и подписки на события. <br>
 
 Описание ниже.
@@ -57,30 +57,57 @@
 // seats
 {
   28788409: {
+    // START: Обязательные поля
     id: 28788409,
-    row: '2',
-    seat: '26',
     coord_x: 1338,
     coord_y: 288,
+    // END: Обязательные поля
+
+
+    // START: поля стилизации
+    styles: {
+      width: 25,
+      height: 25,
+      bg_color: '#a99498',
+      border_color: 'red',
+      rx: 3,
+      ry: 3,
+    }
+    // END: поля стилизации
+
+
+    // START: необязательные параметры
+    additional: {
+      row: '2',
+      seat: '26',
+      tooltip: {
+        html: `
+          <div class="place-tooltip">
+            tooltip_content
+          </div>
+        `,
+      },
+      sector: {
+        id: 318746,
+        name: 'Балкон 3-го яруса',
+        is_simple: false,
+      },
+    }
+    // END: необязательные параметры
+
+
+    // START: любые дополнительные поля
     location_place_id: 28788409,
-    eplace_id: 12345621,
+    event_place_id: 12345621,
     sector: {
       id: 318746,
       name: 'Балкон 3-го яруса',
       is_simple: false,
     },
     opened: true, // место оценено
-    reserve_status: 'by_user' // 'closed' | 'available' | 'reserved'
+    reserve_status: 'reserved_my', // 'closed' | 'available' | 'reserved'
     price: 100,
-    bg_color: '#a99498',
-    border_color: 'red',
-    tooltip: {
-      html: `
-        <div class="place-tooltip">
-          tooltip_content
-        </div>
-      `,
-    },
+    // END: любые дополнительные поля
   },
   // ...
 }
