@@ -10,11 +10,13 @@
   const schemeSeats = ref([])
   const selectedSeats = ref({})
   const selectionFilters = ref({})
+  const loading = ref(false)
 
 
   provide('schemeSeats', schemeSeats)
   provide('schemeConfig', schemeConfig)
   provide('selectionFilters', selectionFilters)
+  provide('loading', loading)
 
 
   // приложение для общения с наружей
@@ -38,6 +40,14 @@
 
     hallSchemeApp.setSelectedSeats(seats)
   }
+
+  hallSchemeApp.on(events.loaderOn, () => {
+    loading.value = true
+  })
+
+  hallSchemeApp.on(events.loaderOff, () => {
+    loading.value = false
+  })
 
   const unselectSeats = seats => {
     hallSchemeApp.unselectSeats(Object.keys(seats))

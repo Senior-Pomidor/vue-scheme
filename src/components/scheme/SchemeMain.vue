@@ -3,7 +3,7 @@
   import SchemeSeat from '@/components/scheme/SchemeSeat.vue'
 
   // vue
-  import { ref, computed, onMounted, watch } from 'vue'
+  import { ref, computed, onMounted, watch, inject } from 'vue'
 
   // utils
   import { throttle } from '@/utils/throttle'
@@ -744,6 +744,10 @@
     isTooltip.value = true
   }
 
+  import VLoader from '@/components/ui/VLoader.vue'
+
+  const loading = inject('loading')
+
   onMounted(() => {
     // таймаут для прогрузки свг карты с местами
     setTimeout(() => {
@@ -759,6 +763,7 @@
 
 <template>
   <div class="scheme-main">
+    <VLoader v-show="loading" />
     <!-- {{ Object.keys(getQuotaSeats).length }} -->
     <svg
       id="elSvgMapWrapper"
