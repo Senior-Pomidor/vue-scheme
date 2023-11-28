@@ -56,22 +56,22 @@
       :transform="`translate(${props.seat.coord_x || 0} ${props.seat.coord_y || 0})`"
     >
       <tspan
-        v-if="seat.additional?.seat"
+        v-if="seat.seat"
         :x="seatWidth - 1"
         :y="seatHeight - 9"
         text-anchor="end"
         class="seat__seat"
       >
-        {{ seat.additional.seat }}
+        {{ seat.seat }}
       </tspan>
       <tspan
-        v-if="seat.additional?.row"
+        v-if="seat.row"
         :x="2"
         :y="seatHeight - 2"
         text-anchor="start"
         class="seat__row"
       >
-        {{ seat.additional.row }}
+        {{ seat.row }}
       </tspan>
     </text>
   </g>

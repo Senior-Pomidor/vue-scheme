@@ -50,7 +50,7 @@
 
 Описание ниже.
 
-Схема принимает и возвращет данные в одинаковом формате.
+**Схема принимает и возвращет данные в одинаковом формате.**
 
 #### Формат данных для схемы:
 ```javascript
@@ -77,37 +77,24 @@
 
 
     // START: необязательные параметры
-    additional: {
-      row: '2',
-      seat: '26',
-      tooltip: {
-        html: `
-          <div class="place-tooltip">
-            tooltip_content
-          </div>
-        `,
-      },
-      sector: {
-        id: 318746,
-        name: 'Балкон 3-го яруса',
-        is_simple: false,
-      },
-    }
-    // END: необязательные параметры
-
-
-    // START: любые дополнительные поля
-    location_place_id: 28788409,
-    event_place_id: 12345621,
+    row: '2',
+    seat: '26',
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     sector: {
       id: 318746,
       name: 'Балкон 3-го яруса',
       is_simple: false,
     },
-    opened: true, // место оценено
-    reserve_status: 'reserved_my', // 'closed' | 'available' | 'reserved'
-    price: 100,
-    // END: любые дополнительные поля
+    // END: необязательные параметры
+
+
+    // любые дополнительные поля
   },
   // ...
 }

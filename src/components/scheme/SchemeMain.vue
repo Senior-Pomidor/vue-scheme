@@ -738,7 +738,7 @@
   const tooltipParent = ref('')
 
   const onSeatHover = seat => {
-    tooltipHtml.value = seat.additional?.tooltip?.html || ''
+    tooltipHtml.value = seat.tooltip?.html || ''
     tooltipParent.value = `[id="${seat.id}"]`
 
     isTooltip.value = true
