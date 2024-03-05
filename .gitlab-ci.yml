@@ -21,9 +21,11 @@ build-job:
   script:
     - npm install && npm run build
     - npm set "registry=https://art.rambler.ru/api/npm/listim-npm/"
-    - npm set "//art.rambler.ru/api/npm/listim-npm/:_password="${REGISTRY_PASSWORD}
-    - npm set "//art.rambler.ru/api/npm/listim-npm/:username="${REGISTRY_USER}
+    - npm set "//art.rambler.ru/api/npm/listim-npm/:_password=${REGISTRY_PASSWORD}"
+    - npm set "//art.rambler.ru/api/npm/listim-npm/:username=${REGISTRY_USER}"
     - npm set "//art.rambler.ru/api/npm/listim-npm/:email=devnull@rambler-co.ru"
     - npm set "//art.rambler.ru/api/npm/listim-npm/:always-auth=true"
+    - apt update
+    - apt install -y less
     - less ~/.npmrc
     - npm publish --access=public
