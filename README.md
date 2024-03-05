@@ -14,6 +14,12 @@
 3. открыть http://localhost:8088
 4. нажать кнопку **fetch places** чтобы прокинуть места в схему
 
+## Добавление пакета в проект
+```
+npm set "@listim:registry=https://art.rambler.ru/api/npm/listim-npm/"
+npm install @listim/vue_hall_scheme_view
+```
+
 ## Встраивание схемы на внешнюю страницу
 (пример внутри в [index.html](/index.html))
 
