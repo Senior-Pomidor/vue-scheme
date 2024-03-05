@@ -1,6 +1,6 @@
 {
-  "name": "vue_hall_scheme_view",
-  "private": true,
+  "name": "@listim/vue_hall_scheme_view",
+  "private": false,
   "version": "0.1.0",
   "type": "module",
   "author": "Afisha tickets",
@@ -9,8 +9,8 @@
     "type": "git",
     "url": "git+https://gitlab.rambler.ru/listim/hall-schema-view"
   },
-  "publishConfig":{
-    "registry": "artifactory url"
+  "publishConfig": {
+    "registry": "https://art.rambler.ru/api/npm/listim-npm/"
   },
   "scripts": {
     "dev": "vite",
