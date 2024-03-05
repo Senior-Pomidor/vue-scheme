@@ -21,7 +21,7 @@ export default defineConfig({
 
   build: {
     minify: 'terser',
-    // emptyOutDir: true,
+    emptyOutDir: true,
     outDir: path.resolve(__dirname, './dist'),
     // outDir: path.resolve(__dirname, './../public/css_js/admin/hall_scheme_app'),
     lib: {
