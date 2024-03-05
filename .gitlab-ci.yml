@@ -12,15 +12,12 @@ stages:
 .tags_builder: &tags_builder
   - builder
 
-.tags_deployer: &tags_deployer
-  - deployer
-
 build-job:
   stage: build
   image: node:16.20
   timeout: 30 minutes
   rules: *rules_master_auto_run
-  tags: *tags_deployer
+  tags: *tags_builder
   script:
     - npm install && npm run build
     - npm set "registry=https://art.rambler.ru/api/npm/listim-npm/"
