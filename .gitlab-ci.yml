@@ -28,6 +28,4 @@ build-job:
     - apt update
     - apt install -y less
     - less ~/.npmrc
-    - apt install -y curl
-    - curl -v https://art.rambler.ru/api/npm/listim-npm/
-    #- npm publish --access=public
+    - npm publish --access=public
