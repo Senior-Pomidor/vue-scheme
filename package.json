@@ -1,7 +1,7 @@
 {
   "name": "@listim/vue_hall_scheme_view",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.1.2",
   "type": "module",
   "author": "Afisha tickets",
   "description": "Vue app for rendering hall schema",
