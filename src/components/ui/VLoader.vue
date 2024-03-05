@@ -22,7 +22,7 @@
     align-items: center;
 }
 .spinner {
-    border: 15px solid #42b883;
+    border: 15px solid @red;
     border-top: 15px solid gray;
     border-radius: 50%;
     width: 80px;

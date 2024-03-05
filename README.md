@@ -94,7 +94,13 @@
     // END: необязательные параметры
 
 
-    // любые дополнительные поля
+    // Люьые дополнительные поля
+    location_place_id: 28788409,
+    eplace_id: 12345621,
+
+    opened: true, // место оценено
+    reserve_status: 'by_user' // 'closed' | 'available' | 'reserved'
+    price: 100,
   },
   // ...
 }

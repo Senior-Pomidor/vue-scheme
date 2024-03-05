@@ -8,6 +8,7 @@
   const emit = defineEmits([
     'changedSeatsState',
     'unselectSeats',
+    'changeFullscreenMode',
   ])
 
   const schemeSeats = inject('schemeSeats')
@@ -37,6 +38,7 @@
       :filters="selectionFilters"
       @changed-seats-state="changedSeatsStateHandler"
       @unselect-seats="unselectSeatsHandler"
+      @change-fullscreen-mode="emit('changeFullscreenMode')"
     />
   </div>
 </template>

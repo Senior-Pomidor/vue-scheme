@@ -1,6 +1,7 @@
 <script setup>
   // components
   import SchemeSeat from '@/components/scheme/SchemeSeat.vue'
+  import VLoader from '@/components/ui/VLoader.vue'
 
   // vue
   import { ref, computed, onMounted, watch, inject } from 'vue'
@@ -37,6 +38,8 @@
   //     max: 1000,
   //   },
   // }
+
+  const loading = inject('loading')
 
   // места на схеме
   const $schemePlaces = ref([])
@@ -100,18 +103,13 @@
   const emit = defineEmits([
     'changedSeatsState',
     'unselectSeats',
+    'changeFullscreenMode',
   ])
 
   const elSvgMapTranslateCoords = ref({
     x: 0,
     y: 0,
   })
-
-  // const zoomScale = ref(.8) // зум свг карты
-  const minMaxZoomScale = {
-    min: 0.3,
-    max: 2.2,
-  } // мин/макс зум свг карты
 
   // данные для мест на карте
   // const mapPlaces = ref([])
@@ -257,6 +255,38 @@
     StateHistoryManager.saveState(seatsState.value)
   }
 
+  const drawSelectionFrame = (elFrame, startCoords, endCoords) => {
+    const actualCoords = {
+      startX: startCoords.x,
+      startY: startCoords.y,
+      endX: endCoords.x,
+      endY: endCoords.y,
+    }
+
+    if (actualCoords.startX > actualCoords.endX) {
+      [actualCoords.startX, actualCoords.endX] = [actualCoords.endX, actualCoords.startX]
+    }
+
+    if (actualCoords.startY > actualCoords.endY) {
+      [actualCoords.startY, actualCoords.endY] = [actualCoords.endY, actualCoords.startY]
+    }
+
+    elFrame.setAttribute('x', actualCoords.startX)
+    elFrame.setAttribute('y', actualCoords.startY)
+
+    elFrame.setAttribute('width', actualCoords.endX - actualCoords.startX)
+    elFrame.setAttribute('height', actualCoords.endY - actualCoords.startY)
+  }
+
+  const selectElementInArea = () => {
+    // исходный набор seats
+    // куда сохранять targetSeats
+  }
+
+
+  const getBoundingRight = elem => elem.getBoundingClientRect().left + elem.getBoundingClientRect().width
+  const getBoundingBottom = elem => elem.getBoundingClientRect().top + elem.getBoundingClientRect().height
+
   const selectionSeatsFromArea = () => {
     const $selectionArea = elSvgMapWrapper.value // svg
     const $selectionFrameRect = elSelectionFrameRect.value // рамка-выделение
@@ -284,32 +314,6 @@
       return cursorPoint || {}
     }
 
-    // рисование рамки-выделения на свг карте
-    const drawSelectionFrameInSvgMapWrapper = (startCoords, endCoordsInArea) => {
-      const actualCoords = {
-        startX: startCoords.x,
-        startY: startCoords.y,
-        endX: endCoordsInArea.x,
-        endY: endCoordsInArea.y,
-      }
-
-      if (actualCoords.startX > actualCoords.endX) {
-        [actualCoords.startX, actualCoords.endX] = [actualCoords.endX, actualCoords.startX]
-      }
-
-      if (actualCoords.startY > actualCoords.endY) {
-        [actualCoords.startY, actualCoords.endY] = [actualCoords.endY, actualCoords.startY]
-      }
-
-      $selectionFrameRect.setAttribute('x', actualCoords.startX)
-      $selectionFrameRect.setAttribute('y', actualCoords.startY)
-
-
-      $selectionFrameRect.setAttribute('width', actualCoords.endX - actualCoords.startX)
-      $selectionFrameRect.setAttribute('height', actualCoords.endY - actualCoords.startY)
-    }
-
-
     // выделение элементов, пересекающихся с рамкой-выделением
     // проверяются координаты относительно окна браузера
     const doSelection = () => {
@@ -332,10 +336,6 @@
       if (actualCoords.startY > actualCoords.endY) {
         [actualCoords.startY, actualCoords.endY] = [actualCoords.endY, actualCoords.startY]
       }
-
-
-      const getBoundingRight = elem => elem.getBoundingClientRect().left + elem.getBoundingClientRect().width
-      const getBoundingBottom = elem => elem.getBoundingClientRect().top + elem.getBoundingClientRect().height
 
       // выеление мест внутри рамки
       for (let $item of $schemePlaces.value) {
@@ -419,7 +419,7 @@
         return
       }
 
-      throttle(drawSelectionFrameInSvgMapWrapper(startCoords, endCoordsInArea), 16.7)
+      throttle(drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea), 16.7)
       throttle(doSelection(), 16.7)
     }
 
@@ -470,31 +470,6 @@
       return cursorPoint || {}
     }
 
-    // рисование рамки-выделения на свг карте
-    const drawSelectionFrameInSvgMapWrapper = (startCoords, endCoordsInArea) => {
-      const actualCoords = {
-        startX: startCoords.x,
-        startY: startCoords.y,
-        endX: endCoordsInArea.x,
-        endY: endCoordsInArea.y,
-      }
-
-      if (actualCoords.startX > actualCoords.endX) {
-        [actualCoords.startX, actualCoords.endX] = [actualCoords.endX, actualCoords.startX]
-      }
-
-      if (actualCoords.startY > actualCoords.endY) {
-        [actualCoords.startY, actualCoords.endY] = [actualCoords.endY, actualCoords.startY]
-      }
-
-      $selectionFrameRect.setAttribute('x', actualCoords.startX)
-      $selectionFrameRect.setAttribute('y', actualCoords.startY)
-
-
-      $selectionFrameRect.setAttribute('width', actualCoords.endX - actualCoords.startX)
-      $selectionFrameRect.setAttribute('height', actualCoords.endY - actualCoords.startY)
-    }
-
     // выделение элементов, пересекающихся с рамкой-выделением
     // проверяются координаты относительно окна браузера
     const doUnSelection = () => {
@@ -513,9 +488,6 @@
       if (actualCoords.startY > actualCoords.endY) {
         [actualCoords.startY, actualCoords.endY] = [actualCoords.endY, actualCoords.startY]
       }
-
-      const getBoundingRight = elem => elem.getBoundingClientRect().left + elem.getBoundingClientRect().width
-      const getBoundingBottom = elem => elem.getBoundingClientRect().top + elem.getBoundingClientRect().height
 
       // выбор мест внутри рамки
       for (let $item of $schemePlaces.value) {
@@ -593,7 +565,7 @@
 
       endCoordsInArea = getCoordsInSvgMapWrapper(evt)
 
-      throttle(drawSelectionFrameInSvgMapWrapper(startCoords, endCoordsInArea), 16.7)
+      throttle(drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea), 16.7)
       throttle(doUnSelection(), 16.7)
     }
 
@@ -632,23 +604,32 @@
     document.addEventListener('mouseup', mouseUpListener)
   }
 
-  // кнопки зума
-  const elControlsZoomIn = ref(null)
-  const elControlsZoomOut = ref(null)
-  const elControlsZoomReset = ref(null)
+  // START: zoom
+  import SchemeScaleControls from '@/components/scheme/SchemeScaleControls.vue'
 
-  const { zoomScale } = useZoom({
+  const { zoomScale, zoom } = useZoom({
     $zoomWrapper: elSvgMapWrapper,
-    controls: {
-      $controlsZoomIn: elControlsZoomIn,
-      $controlsZoomOut: elControlsZoomOut,
-      $controlsZoomReset: elControlsZoomReset,
-    },
     minMaxZoom: {
-      min: 0.2,
+      min: 0.3,
       max: 2.2,
     },
   })
+
+  const isFullscreen = inject('isFullscreen')
+
+  const onFullScreenBtnClick = () => {
+    emit('changeFullscreenMode')
+  }
+
+  const centerSvgMap = () => {
+    elSvgMapTranslateCoords.value.x = elSvgMapWrapper.value.getBoundingClientRect().width / 2
+      - elSvgMap.value.getBBox().width / 2
+
+    elSvgMapTranslateCoords.value.y = elSvgMapWrapper.value.getBoundingClientRect().height / 2
+      - elSvgMap.value.getBBox().height / 2
+  }
+  // END: zoom
+
 
   const grabbing = () => {
     const $elGrabbingWraper = document.querySelector('.elSvgMapWrapper')
@@ -731,6 +712,7 @@
     })
   }
 
+
   import VTooltip from '@/components/ui/VTooltip.vue'
 
   const isTooltip = ref(false)
@@ -743,10 +725,6 @@
 
     isTooltip.value = true
   }
-
-  import VLoader from '@/components/ui/VLoader.vue'
-
-  const loading = inject('loading')
 
   onMounted(() => {
     // таймаут для прогрузки свг карты с местами
@@ -774,12 +752,12 @@
       width="100%"
       height="100%"
     >
-      <g
-        id="elSvgMap"
-        ref="elSvgMap"
-        :transform="`translate(${elSvgMapTranslateCoords.x || '0'}, ${elSvgMapTranslateCoords.y || '0'})`"
-      >
-        <g id="elSvgMap__inner" :transform="`scale(${zoomScale})`">
+      <g id="elSvgMap__inner" :transform="`scale(${zoomScale})`">
+        <g
+          id="elSvgMap"
+          ref="elSvgMap"
+          :transform="`translate(${elSvgMapTranslateCoords.x || '0'}, ${elSvgMapTranslateCoords.y || '0'})`"
+        >
           <SchemeSeat
             v-for="mapPlace in getSeats"
             :id="mapPlace.id"
@@ -790,19 +768,14 @@
               // _opened: mapPlace.opened,
               _unselected: currentUnSelectedSeats[mapPlace.id],
             }"
-            :seat-width="mapPlace.styles?.width || 20"
-            :seat-height="mapPlace.styles?.height || 20"
             :selectable="!!getQuotaSeats[mapPlace.id]"
             :seat="mapPlace"
+            :seat-width="props.config.seat_width || 20"
+            :seat-height="props.config.seat_height || 20"
             @click="handleClick(mapPlace.id)"
             @mouseover="onSeatHover(mapPlace)"
             @mouseleave="isTooltip = false"
           />
-
-          <!--
-            :seat-width="props.config.seat_width || 20"
-            :seat-height="props.config.seat_height || 20"
-          -->
         </g>
       </g>
 
@@ -825,30 +798,14 @@
       />
     </svg>
 
-    <div class="scheme-main__controls controls">
-      <button
-        ref="elControlsZoomIn"
-        class="controls__zoom-in"
-        title="увеличить"
-      >
-        +
-      </button>
-      <button
-        ref="elControlsZoomReset"
-        class="controls__zoom-reset"
-        title="сбросить"
-      >
-        0
-      </button>
-      <button
-        ref="elControlsZoomOut"
-        class="controls__zoom-out"
-        title="уменьшить"
-      >
-        &ndash;
-      </button>
-      <button class="controls__zoom-out" title="сбросить масштабирование">&#177;</button>
-    </div>
+    <SchemeScaleControls
+      class="scheme-main__controls"
+      :is-fullscreen="isFullscreen"
+      @click-zoom-in="zoom.in"
+      @click-zoom-out="zoom.out"
+      @click-zoom-reset="centerSvgMap(); zoom.reset()"
+      @click-full-screen="onFullScreenBtnClick"
+    />
 
     <!-- <VTooltip
       v-show="isTooltip"

@@ -1,7 +1,7 @@
 <script setup>
   import SchemeAdminView from '@/views/schemeAdminView/SchemeAdminView.vue'
 
-  import { provide, ref, computed } from 'vue'
+  import { provide, inject, ref, computed } from 'vue'
 
   // конфиг схемы
   const schemeConfig = ref({})
@@ -10,48 +10,75 @@
   const schemeSeats = ref([])
   const selectedSeats = ref({})
   const selectionFilters = ref({})
-  const loading = ref(false)
 
 
   provide('schemeSeats', schemeSeats)
   provide('schemeConfig', schemeConfig)
   provide('selectionFilters', selectionFilters)
-  provide('loading', loading)
 
 
   // приложение для общения с наружей
-  const hallSchemeApp = window.hallSchemeApp
+  const hallSchemeApp = inject('hallSchemeApp')
   const events = hallSchemeApp.events
 
   hallSchemeApp.on(events.setSchemeSeatsToApp, ({ detail }) => {
-    schemeSeats.value = detail.seats || []
+    schemeSeats.value = detail.seats || {}
+  })
+
+  hallSchemeApp.on(events.updateSeatsChunk, ({ detail }) => {
+    for (const id in detail.seats) {
+      schemeSeats.value[id] = detail.seats[id]
+    }
   })
 
   hallSchemeApp.on(events.setSelectionFilters, ({ detail }) => {
     selectionFilters.value = detail.filters || {}
-
-    console.log('123 : ', detail.filters)
   })
 
-  hallSchemeApp.unselectSeats()
+  // hallSchemeApp.unselectSeats()
 
-  const updateSelectedSeats = seats => {
+  const handleChangedSeatsState = seats => {
     selectedSeats.value = seats
 
     hallSchemeApp.setSelectedSeats(seats)
   }
 
-  hallSchemeApp.on(events.loaderOn, () => {
+  const handleUnselectSeats = seats => {
+    hallSchemeApp.unselectSeats(seats)
+  }
+
+
+  // fullscreen
+  const isFullscreen = ref(false)
+  provide('isFullscreen', isFullscreen)
+
+  const handleChangeFullscreenMode = () => {
+    isFullscreen.value = !isFullscreen.value
+
+    document.body.classList.toggle('_scroll_lock')
+  }
+
+
+  // loader
+  import LoaderControl from '@/js/classes/LoaderControl'
+
+  const loading = ref(false)
+
+  provide('loading', loading)
+
+  LoaderControl.setMethod(function() {
+    loading.value = false
+  }, function() {
     loading.value = true
   })
 
-  hallSchemeApp.on(events.loaderOff, () => {
-    loading.value = false
+  hallSchemeApp.on(events.loaderAddCount, () => {
+    LoaderControl.increaseCount()
   })
 
-  const unselectSeats = seats => {
-    hallSchemeApp.unselectSeats(Object.keys(seats))
-  }
+  hallSchemeApp.on(events.loaderDecreaseCount, () => {
+    LoaderControl.decreaseCount()
+  })
 
   const getComponent = computed(() => SchemeAdminView)
 </script>
@@ -60,8 +87,10 @@
   <component
     :is="getComponent"
     class="vue_hall_scheme_wrapper"
-    @changed-seats-state="updateSelectedSeats"
-    @unselect-seats="unselectSeats"
+    :class="{ _full_screen: isFullscreen }"
+    @changed-seats-state="handleChangedSeatsState"
+    @unselect-seats="handleUnselectSeats"
+    @change-fullscreen-mode="handleChangeFullscreenMode"
   />
   <!-- <router-view
     @changed-seats-state="updateSelectedSeatsIds"
@@ -69,6 +98,19 @@
   </router-view> -->
 </template>
 
-<style lang="less" scoped>
-  //
+<style lang="less">
+  ._scroll_lock {
+    overflow: hidden;
+  }
+
+  .vue_hall_scheme_wrapper {
+    &._full_screen {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      z-index: 10000;
+    }
+  }
 </style>

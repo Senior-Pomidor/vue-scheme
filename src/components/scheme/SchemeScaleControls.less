@@ -1,0 +1,39 @@
+.scheme-scale-controls {
+  @btn_deep: 3px;
+
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 6px;
+    background-color: #f4f7fb;
+    font-size: 20px;
+    box-shadow: @btn_deep @btn_deep @blue-light;
+    user-select: none;
+    transition:
+      transform .2s ease,
+      box-shadow .2s ease;
+
+    +button {
+      margin-top: .5rem;
+    }
+
+    &:active,
+    &:focus {
+      outline: none;
+    }
+
+    .hover({
+      border: none;
+      transform: translate(@btn_deep, @btn_deep);
+      box-shadow: 0px 0px @blue-light;
+    })
+}
+}

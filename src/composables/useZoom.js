@@ -4,19 +4,10 @@ import { throttle } from '@/utils/throttle'
 /**
  * @param { Object } options
  * @param { Element } options.$zoomWrapper - зумящийся блок
- * @param { Object } options.controls -
- * @param { Element } options.controls.$controlsZoomIn
- * @param { Element } options.controls.$controlsZoomOut
- * @param { Element } options.controls.$controlsZoomReset
  * @param {{ min: Float; max: Number; }} options.minMaxZoom
  */
 function useZoom({
   $zoomWrapper,
-  controls: {
-    $controlsZoomIn,
-    $controlsZoomOut,
-    $controlsZoomReset,
-  },
   minMaxZoom: {
     min = 0.2,
     max = 2.2,
@@ -45,24 +36,16 @@ function useZoom({
     zoomScale.value = Math.max(min, Math.min(max, newZoomScale.value))
   }
 
-  const setControlsListeners = () => {
-    if (unref($controlsZoomIn.value)) {
-      unref($controlsZoomIn).addEventListener('click', () => {
-        changeZoom('+')
-      })
-    }
-
-    if (unref($controlsZoomOut)) {
-      unref($controlsZoomOut).addEventListener('click', () => {
-        changeZoom('-')
-      })
-    }
-
-    if (unref($controlsZoomReset)) {
-      unref($controlsZoomReset).addEventListener('click', () => {
-        changeZoom()
-      })
-    }
+  const zoom = {
+    in() {
+      changeZoom('+')
+    },
+    out() {
+      changeZoom('-')
+    },
+    reset() {
+      changeZoom()
+    },
   }
 
   const mouseWheelZoomHandler = throttle(evt => {
@@ -79,8 +62,6 @@ function useZoom({
   }, 0)
 
   onMounted(() => {
-    setControlsListeners()
-
     if (unref($zoomWrapper)) {
       unref($zoomWrapper).addEventListener('wheel', mouseWheelZoomHandler)
     }
@@ -88,6 +69,7 @@ function useZoom({
 
   return {
     zoomScale,
+    zoom,
   }
 }
 

@@ -21,6 +21,7 @@
     <button id="confirmSelectionBtn">confirm selection</button>
 
     <section id="vue_hall_scheme_app"></section>
+    <section id="vue_hall_scheme_app_2"></section>
 
     <script type="module" src="/src/main.js"></script>
     <script type="module" src="map.js"></script>
@@ -31,15 +32,28 @@
 
       const fetchSelectionBtn = document.getElementById('fetchSelectionBtn')
       const confirmSelectionBtn = document.getElementById('confirmSelectionBtn')
-      const hallSchemeApp = window.hallSchemeApp
+
+      const VueHallSchemeApp = new window.VueHallSchemeApp({
+        el: '#vue_hall_scheme_app',
+      })
+
+      VueHallSchemeApp.create()
+        .mount()
+
+      const hallSchemeApp2 = new window.VueHallSchemeApp({
+        el: '#vue_hall_scheme_app_2',
+      })
+
+      hallSchemeApp2.create()
+        .mount()
 
       fetchSelectionBtn.onclick = () => {
-        hallSchemeApp.setSchemeSeatsToApp(places)
+        console.log(fetchSelectionBtn)
+        VueHallSchemeApp.setSchemeSeatsToApp(places)
       }
 
-
       // фильтр выделения мест
-      hallSchemeApp.setSelectionFilters({
+      VueHallSchemeApp.setSelectionFilters({
         attrs: {
           opened: true,
           reserve_status: ['available', 'reserved_my'],
@@ -48,8 +62,6 @@
 
       confirmSelectionBtn.onclick = () => {
         const placesIds = hallSchemeApp.getSelectedSeats()
-
-        console.log(placesIds)
 
         // HACK: имитация бэка
         // вместо этого нужно обновить места на бэке,
