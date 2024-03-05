@@ -44,5 +44,5 @@
 </template>
 
 <style lang="less" scoped>
-@import url('./schemeAdminView.less');
+@import url('./SchemeAdminView.less');
 </style>
