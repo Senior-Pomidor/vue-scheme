@@ -1,17 +1,17 @@
 <script setup>
   // components
-  import SchemeSeat from '@/components/scheme/SchemeSeat.vue'
-  import VLoader from '@/components/ui/VLoader.vue'
+  import SchemeSeat from '../../components/scheme/SchemeSeat.vue'
+  import VLoader from '../../components/ui/VLoader.vue'
 
   // vue
   import { ref, computed, onMounted, watch, inject } from 'vue'
 
   // utils
-  import { throttle } from '@/utils/throttle'
+  import { throttle } from '../../utils/throttle'
 
   // composables
-  import { useUndoRedo } from '@/composables/useUndoRedo'
-  import { useZoom } from '@/composables/useZoom'
+  import { useUndoRedo } from '../../composables/useUndoRedo'
+  import { useZoom } from '../../composables/useZoom'
 
   const props = defineProps({
     config: {
@@ -605,7 +605,7 @@
   }
 
   // START: zoom
-  import SchemeScaleControls from '@/components/scheme/SchemeScaleControls.vue'
+  import SchemeScaleControls from '../../components/scheme/SchemeScaleControls.vue'
 
   const { zoomScale, zoom } = useZoom({
     $zoomWrapper: elSvgMapWrapper,
@@ -713,7 +713,7 @@
   }
 
 
-  import VTooltip from '@/components/ui/VTooltip.vue'
+  import VTooltip from '../../components/ui/VTooltip.vue'
 
   const isTooltip = ref(false)
   const tooltipHtml = ref('')

@@ -1,5 +1,5 @@
 <script setup>
-  import SchemeAdminView from '@/views/schemeAdminView/SchemeAdminView.vue'
+  import SchemeAdminView from './views/schemeAdminView/SchemeAdminView.vue'
 
   import { provide, inject, ref, computed } from 'vue'
 

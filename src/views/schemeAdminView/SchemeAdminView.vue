@@ -1,6 +1,6 @@
 <script setup>
   // components
-  import SchemeMain from '@/components/scheme/SchemeMain.vue'
+  import SchemeMain from '../../components/scheme/SchemeMain.vue'
 
   // vue
   import { inject } from 'vue'

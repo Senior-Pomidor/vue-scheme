@@ -21,17 +21,25 @@ export default defineConfig({
 
   build: {
     minify: 'terser',
-    emptyOutDir: true,
+    // emptyOutDir: true,
+    emptyOutDir: false,
     outDir: path.resolve(__dirname, './dist'),
-    // outDir: path.resolve(__dirname, './../public/css_js/admin/hall_scheme_app'),
     lib: {
       entry: path.resolve(__dirname, 'src/main.js'),
-      name: 'vue_hall_scheme_app',
-      fileName: format => `vue_hall_scheme_app.${format}.js`,
+      name: 'vue_hall_scheme_view',
+      fileName: format => `vue_hall_scheme_view.${format}.js`,
       formats: ['umd'],
     },
   },
-  // base: './',
+
+  rollupOptions: {
+    external: ['vue'],
+    output: {
+      globals: {
+        vue: 'Vue',
+      },
+    },
+  },
 
   plugins: [
     vue(),
@@ -42,7 +50,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // vue: 'vue/dist/vue.esm-bundler.js',
     },
   },
 

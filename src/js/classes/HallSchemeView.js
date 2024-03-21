@@ -1,4 +1,4 @@
-class HallSchemeApp {
+class HallSchemeView {
   // const events
 
   constructor({ el }) {
@@ -131,4 +131,4 @@ class HallSchemeApp {
   // }
 }
 
-export { HallSchemeApp }
+export { HallSchemeView }

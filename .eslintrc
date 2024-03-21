@@ -9,6 +9,7 @@
     "plugin:vue/vue3-recommended"
   ],
   "parser": "vue-eslint-parser",
+  "parserOptions": { "ecmaVersion": 2023 },
   "rules": {
     // "max-len": [
     //   "error",
