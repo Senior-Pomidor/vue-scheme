@@ -20,15 +20,14 @@ export default defineConfig({
   },
 
   build: {
-    minify: 'terser',
-    // emptyOutDir: true,
-    emptyOutDir: false,
+    minify: 'esbuild',
+    emptyOutDir: true,
     outDir: path.resolve(__dirname, './dist'),
     lib: {
       entry: path.resolve(__dirname, 'src/main.js'),
-      name: 'vue_hall_scheme_view',
-      fileName: format => `vue_hall_scheme_view.${format}.js`,
-      formats: ['umd'],
+      formats: ['es'],
+      name: 'VueHallSchemeView',
+      // fileName: 'vue_hall_scheme_view', // дефолт - name из package.json
     },
   },
 
@@ -44,7 +43,6 @@ export default defineConfig({
   plugins: [
     vue(),
     // mkcert(),
-    // splitVendorChunkPlugin(),
   ],
 
   resolve: {

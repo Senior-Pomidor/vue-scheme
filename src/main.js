@@ -70,7 +70,7 @@ import '@/assets/less/main.less'
 // export const hallSchemeView = new VueHallSchemeView()
 
 // window.VueHallSchemeView = VueHallSchemeView
-const test_export = { name: 'vue_hall_scheme_view' }
+const test_export = { name: 'qweqweqwe' }
 
 export { test_export }
 
