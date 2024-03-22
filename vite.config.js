@@ -25,7 +25,7 @@ export default defineConfig({
     outDir: path.resolve(__dirname, './dist'),
     lib: {
       entry: path.resolve(__dirname, 'src/main.js'),
-      formats: ['es'],
+      formats: ['es', 'cjs'],
       name: 'VueHallSchemeView',
       // fileName: 'vue_hall_scheme_view', // дефолт - name из package.json
     },

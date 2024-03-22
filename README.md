@@ -1,4 +1,4 @@
-# [<span style="color: #15b881">Hall Scheme View</span>](https://gitlab.rambler.ru/listim/hall-schema-view)
+# [<span style="color: #15b881">Vue Hall Scheme View</span>](https://gitlab.rambler.ru/listim/vue-hall-scheme-view)
 ## Node.js version
 
 <span style="color: #15b881">16.20.0</span>
@@ -7,50 +7,55 @@
 
 ## Vue 3 + Vite
 
-## Demo dev
-
-1. yarn
-2. yarn dev
-3. открыть http://localhost:8088
-4. нажать кнопку **fetch places** чтобы прокинуть места в схему
-
 ## Добавление пакета в проект
 ```
 npm set "@listim:registry=https://art.rambler.ru/api/npm/listim-npm/"
 npm install @listim/vue_hall_scheme_view
 ```
 
-## Встраивание схемы на внешнюю страницу
-(пример внутри в [index.html](/index.html))
-
-1. Создать на странице блок с id="vue_hall_scheme_app"
+## Использование пакета в проекте
 ```html
-<div id="vue_hall_scheme_app"></div>
+<!-- html -->
+...
+<div id="selector_name"></div>
+...
 ```
 
-2. Подключить скрипты схемы в html
-- DEV with HMR
-    ```html
-    <script type="module" src="http://localhost:8088/@vite/client"></script>
-    <script type="module" src="http://localhost:8088/src/main.js"></script>
-    ```
-- BUILD
-    ```html
-    <link rel="stylesheet" href="<PATH_TO_BUILD_DIR>/style.css">
-    <script src="<PATH_TO_BUILD_DIR>/vue_hall_scheme_app.umd.js"></script>
-    ```
-    <PATH_TO_BUILD_DIR> - указан в vite.config.js
-По дефолту dist
+```javascript
+// js
+import { VueHallSchemeView } from '@listim/vue_hall_scheme_view'
 
-3. Вызвать метод **window.hallSchemeApp.setSchemeSeatsToApp(seats)** чтобы прокинуть места на схему
+const myApp = new VueHallSchemeView({
+  el: '#selector_name'
+})
+
+myApp.create() // создание Vue приложения
+  .mount() // монтирование в '#selector_name'
+```
 
 **У схемы нет размеров. Она заполняет 100% ширины и высоты блока, в который встраивается.**
+
+## [dev] Demo
+1. yarn
+2. yarn dev
+3. открыть http://localhost:8088
+4. нажать кнопку **fetch places** чтобы прокинуть места в схему
+
+## [dev] Добавление локального пакета в проект
+в корне пакета - ```npm link```
+в корне проекта, куда подключается пакет - ```npm link @listim/vue_hall_scheme_view```
+
+## [dev] Запуск в режиме отслеживания изменений
+```npm run watch```
+
+
+
 
 
 
 
 ## Взаимодействие со схемой
-Для взаимодействия со схемой используется класс **window.hallSchemeApp** <br>
+Для взаимодействия со схемой используется инстанс **VueHallSchemeApp** <br>
 Его методы генерят одноимённые события на элементе, куда встраивается схема. <br>
 Передача данных осуществляется путём вызова методов и подписки на события. <br>
 
@@ -113,11 +118,11 @@ npm install @listim/vue_hall_scheme_view
 ```
 
 
-## window.hallSchemeApp
-Поля
+## API
+#### Поля
 - events (enum) - названия событий, генерируемых методами класса. Совпадают с названиями методов.
 
-Методы внешние
+#### Методы внешние
 - getRootElement() {Element} - элемент, в который встроена схема и на котором генерируются события
 - setSchemeSeatsToApp({id: {seat}}) {void} - установить места на схеме
 - getSelectedSeats() {{id: {seat}}} - получить выделенные места
