@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./
+      dockerfile: docker/Local/Dockerfile
+    volumes:
+      - ./:/var/www/html/frontend
+    ports:
+      - '8090:8090'
+    tty: true

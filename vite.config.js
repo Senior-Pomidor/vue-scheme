@@ -8,7 +8,7 @@ import path from 'path'
 export default defineConfig({
   server: {
     host: true,
-    port: 8088,
+    port: 8090,
     // https: true,
     watch: {
       usePolling: true,
