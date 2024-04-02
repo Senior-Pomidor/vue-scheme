@@ -23,7 +23,8 @@ npm install @listim/vue_hall_scheme_view
 
 ```javascript
 // js
-import { VueHallSchemeView } from '@listim/vue_hall_scheme_view'
+import { VueHallSchemeView } from '@listim/vue_hall_scheme_view
+import '@listim/vue_hall_scheme_view/style.css'
 
 // создание Vue приложения и монтирование в '#selector_for_mounting'
 const myApp = new VueHallSchemeView('#selector_for_mounting')
