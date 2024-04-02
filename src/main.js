@@ -11,9 +11,8 @@ import '@/assets/less/bundle.less'
 import '@/assets/less/main.less'
 
 
-
 /**
- * Отрисовка схемы зала
+ * Vue приложение для отрисовки и работы со схемой зала
  *
  * @export
  * @class VueHallSchemeView
@@ -22,67 +21,43 @@ import '@/assets/less/main.less'
  */
 class VueHallSchemeView extends HallSchemeView {
   #app
+  #rootSelector
 
   /**
-   * @param {object} options
-   * @param {string} options.el - селектор для монтирования
+   * @param {string} rootSelector - (reqired) селектор для монтирования
+   * @param {object} options - настройки
    */
-  constructor(options) {
-    const defaultOtions = {
-      el: '#vue_hall_scheme_view_app',
+  constructor(rootSelector, options = {}) {
+    // const defaultOtions = {
+    //   el: '#vue_hall_scheme_view_app',
+    // }
+
+    // const mergedOptions = { ...defaultOtions, ...options }
+
+    if (!rootSelector) {
+      throw new Error('[VueHallSchemeView] constructor: no el selector')
     }
 
-    const mergedOptions = { ...defaultOtions, ...options }
+    super(rootSelector, options)
 
-    super(mergedOptions)
-    this.el = mergedOptions.el
-  }
-
-  /**
-   * Создание Vue приложения
-   */
-  create() {
-    if (!this.el) {
-      console.warn('[VueHallSchemeView] create: no el selector for mounting app')
-
-      return this
-    }
+    this.#rootSelector = rootSelector
 
     this.#app = createApp(App)
       .provide('hallSchemeApp', this)
+      .mount(this.#rootSelector)
 
-    return this
+    console.info('[VueHallSchemeView] created and mounted to ' + this.#rootSelector)
   }
 
   /**
-   * Монтирование Vue приложения в options.el
+   * Демонтирование Vue приложения из rootSelector
    */
-  mount() {
-    if (!this.el) {
-      console.warn('[VueHallSchemeView] mount: no el selector for mounting app')
+  // FIXME: продумать и доделать API позже
+  // unmount() {
+  //   this.#app.unmount(this.#rootSelector)
 
-      return this
-    }
-
-    this.#app.mount(this.el)
-
-    return this
-  }
-
-  /**
-   * Демонтирование Vue приложения из options.el
-   */
-  unmount() {
-    if (!this.el) {
-      console.warn('[VueHallSchemeView] unmount: no el selector for unmounting app')
-
-      return this
-    }
-
-    this.#app.unmount(this.el)
-
-    return this
-  }
+  //   return this
+  // }
 }
 
 export { VueHallSchemeView }

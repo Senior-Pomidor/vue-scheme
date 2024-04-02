@@ -104,6 +104,7 @@
     'changedSeatsState',
     'unselectSeats',
     'changeFullscreenMode',
+    // 'clearSelectedSeats',
   ])
 
   const elSvgMapTranslateCoords = ref({
@@ -168,13 +169,23 @@
     grabbing: 'Перемещение схемы',
   })
 
-  watch(() => getSeats.value, newVal => {
-    currentSelectedSeats.value = {}
-    seatsState.value.selectedSeats = {}
+  // const clearSelectedSeats = () => {
+  //   currentSelectedSeats.value = {}
+  //   seatsState.value.selectedSeats = {}
 
-    StateHistoryManager.clearState()
-    StateHistoryManager.saveState(seatsState.value)
-  }, { deep: true })
+  //   StateHistoryManager.clearState()
+  //   StateHistoryManager.saveState(seatsState.value)
+  // }
+
+  // watch(() => getSeats.value, newVal => {
+  //   currentSelectedSeats.value = {}
+  //   seatsState.value.selectedSeats = {}
+
+  //   StateHistoryManager.clearState()
+  //   StateHistoryManager.saveState(seatsState.value)
+
+  //   clearSelectedSeats()
+  // }, { deep: true })
 
   const isModeUnSelection = computed(() => !isModeGrabbing.value && isControlKey.value)
   const isModeSelection = computed(() => !isModeGrabbing.value && !isModeUnSelection.value)
@@ -317,6 +328,7 @@
     // выделение элементов, пересекающихся с рамкой-выделением
     // проверяются координаты относительно окна браузера
     const doSelection = () => {
+      // console.log(213)
       if (!$schemePlaces.value) {
         return
       }
@@ -719,12 +731,31 @@
   const tooltipHtml = ref('')
   const tooltipParent = ref('')
 
-  const onSeatHover = seat => {
+  const onSeatHover = (seat) => {
     tooltipHtml.value = seat.tooltip?.html || ''
     tooltipParent.value = `[id="${seat.id}"]`
 
-    isTooltip.value = true
+     isTooltip.value = true
   }
+
+
+  // FIXME: START: костыль для очистки выделения
+  // const isClearSelectedSeats = inject('isClearSelectedSeats')
+
+  // const getIsClearSelectedSeats = computed(() => {
+  //   console.log(isClearSelectedSeats.value)
+  //   return isClearSelectedSeats.value
+  // })
+
+  // watch(() => getIsClearSelectedSeats.value, newVal => {
+
+  //   console.log('asdsda')
+  //   if (newVal) {
+  //     clearSelectedSeats()
+  //   emit('clearSelectedSeats')
+  //   }
+  // })
+  // FIXME: END: костыль для очистки выделения
 
   onMounted(() => {
     // таймаут для прогрузки свг карты с местами

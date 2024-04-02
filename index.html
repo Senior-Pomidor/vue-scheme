@@ -19,6 +19,7 @@
   <body>
     <button id="fetchSelectionBtn" style="margin-left: 500px;">fetch places</button>
     <button id="confirmSelectionBtn">confirm selection</button>
+    <!-- <button id="clearSelectedSeatsBtn">clear selection</button> -->
 
     <section id="vue_hall_scheme_app"></section>
     <section id="vue_hall_scheme_app_2"></section>
@@ -32,20 +33,11 @@
 
       const fetchSelectionBtn = document.getElementById('fetchSelectionBtn')
       const confirmSelectionBtn = document.getElementById('confirmSelectionBtn')
+      // const clearSelectedSeatsBtn = document.getElementById('clearSelectedSeatsBtn')
 
-      const vueHallSchemeApp = new VueHallSchemeView({
-        el: '#vue_hall_scheme_app',
-      })
+      const vueHallSchemeApp = new VueHallSchemeView('#vue_hall_scheme_app')
 
-      vueHallSchemeApp.create()
-        .mount()
-
-      const hallSchemeApp2 = new VueHallSchemeView({
-        el: '#vue_hall_scheme_app_2',
-      })
-
-      hallSchemeApp2.create()
-        .mount()
+      const hallSchemeApp2 = new VueHallSchemeView('#vue_hall_scheme_app_2')
 
       fetchSelectionBtn.onclick = () => {
         console.log(fetchSelectionBtn)
@@ -55,10 +47,13 @@
       // фильтр выделения мест
       vueHallSchemeApp.setSelectionFilters({
         attrs: {
-          opened: true,
-          reserve_status: ['available', 'reserved_my'],
+          status: ['available'],
         }
       })
+
+      // clearSelectedSeatsBtn.onclick = () => {
+      //   vueHallSchemeApp.clearSelectedSeats()
+      // }
 
       confirmSelectionBtn.onclick = () => {
         const placesIds = vueHallSchemeApp.getSelectedSeats()
@@ -68,7 +63,8 @@
         // и получить новые места
         for (let id in placesIds) {
           places[id].border_color = 'none'
-          places[id].reserve_status = 'reserved_my'
+          // places[id].status = 'available'
+          places[id].reserved_by_user = true
           places[id].bg_color = 'red'
         }
 
@@ -79,6 +75,5 @@
         vueHallSchemeApp.setSchemeSeatsToApp(newPlaces)
       }
     </script>
-
   </body>
 </html>

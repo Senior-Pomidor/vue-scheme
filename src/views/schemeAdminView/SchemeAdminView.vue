@@ -9,6 +9,7 @@
     'changedSeatsState',
     'unselectSeats',
     'changeFullscreenMode',
+    // 'clearSelectedSeats',
   ])
 
   const schemeSeats = inject('schemeSeats')
@@ -39,8 +40,9 @@
       @changed-seats-state="changedSeatsStateHandler"
       @unselect-seats="unselectSeatsHandler"
       @change-fullscreen-mode="emit('changeFullscreenMode')"
-    />
-  </div>
+      />
+      <!-- @clear-selected-seats="emit('clearSelectedSeats')" -->
+    </div>
 </template>
 
 <style lang="less" scoped>

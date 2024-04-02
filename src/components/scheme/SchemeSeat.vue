@@ -7,8 +7,8 @@
     <rect
       :width="props.seatWidth + 2"
       :height="props.seatHeight + 2"
-      :x="props.seat.coord_x"
-      :y="props.seat.coord_y"
+      :x="props.seat.x"
+      :y="props.seat.y"
       rx="3"
       ry="3"
       :fill="props.seat.bg_color || '#a99498'"
@@ -54,9 +54,10 @@
     <text
       class="seat__text"
       color="black"
-      :transform="`translate(${props.seat.coord_x || 0} ${props.seat.coord_y || 0})`"
+      :transform="`translate(${props.seat.x || 0} ${props.seat.y || 0})`"
     >
       <tspan
+        v-if="seat.seat"
         :x="seatWidth - 1"
         :y="seatHeight - 9"
         text-anchor="end"
@@ -65,6 +66,7 @@
         {{ seat.seat }}
       </tspan>
       <tspan
+        v-if="seat.row"
         :x="2"
         :y="seatHeight - 2"
         text-anchor="start"
@@ -109,18 +111,18 @@
 
   const getSellChanelCoords = computed(() => ({
     is_api: {
-      cx: props.seat.coord_x + 3 || 0,
-      cy: props.seat.coord_y + 9 || 0,
+      cx: props.seat.x + 3 || 0,
+      cy: props.seat.y + 9 || 0,
     },
 
     widget: {
-      cx: props.seat.coord_x + 17 || 0,
-      cy: props.seat.coord_y + 17 || 0,
+      cx: props.seat.x + 17 || 0,
+      cy: props.seat.y + 17 || 0,
     },
 
     cashbox: {
-      cx: props.seat.coord_x + 3 || 0,
-      cy: props.seat.coord_y + 3 || 0,
+      cx: props.seat.x + 3 || 0,
+      cy: props.seat.y + 3 || 0,
     },
   }))
 

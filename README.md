@@ -17,7 +17,7 @@ npm install @listim/vue_hall_scheme_view
 ```html
 <!-- html -->
 ...
-<div id="selector_name"></div>
+<div id="selector_for_mounting"></div>
 ...
 ```
 
@@ -25,19 +25,15 @@ npm install @listim/vue_hall_scheme_view
 // js
 import { VueHallSchemeView } from '@listim/vue_hall_scheme_view'
 
-const myApp = new VueHallSchemeView({
-  el: '#selector_name'
-})
-
-myApp.create() // создание Vue приложения
-  .mount() // монтирование в '#selector_name'
+// создание Vue приложения и монтирование в '#selector_for_mounting'
+const myApp = new VueHallSchemeView('#selector_for_mounting')
 ```
 
 **У схемы нет размеров. Она заполняет 100% ширины и высоты блока, в который встраивается.**
 
 ## [dev] Запуск и Демо
 
-После запуска приложение будет доступно по ссылке http://localhost:80905.
+После запуска приложение будет доступно по ссылке http://localhost:8090
 Для демо нажать кнопку **fetch places** чтобы прокинуть места в схему
 
 #### - Запуск с Docker
@@ -47,43 +43,43 @@ myApp.create() // создание Vue приложения
 
 1. Сбилдить контейнер
 ```bash
-docker-compose up -d build
+docker compose up -d --build
 ```
 
 2. Запустить контейнер
 
 ```bash
-docker-compose start
+docker compose start
 ```
 
 3. Установить node_modules
 ```bash
-docker-compose exec frontend sh -c 'yarn'
+docker compose exec frontend sh -c 'yarn'
 ```
 
 ##### Запуск
 1. Запустить контейнер (если ещё не запущен)
 ```bash
-docker-compose start
+docker compose start
 ```
 
 2. Запуск приложения в dev mode
 
 Короткая команда
 ```bash
-docker-compose exec frontend sh -c 'yarn dev'
+docker compose exec frontend sh -c 'yarn dev'
 ```
 
 или перейти в контейнер и запустить в нём приложение
 ```bash
-docker-compose exec -it frontend sh
+docker compose exec frontend sh
 
 # в контейнере
 yarn dev
 ```
 
 #### - Запуск без Docker
-1. установить Node.js 16.20.0 (с помощью nvm ```nvm install 16.20.0; nvm use```)
+1. установить Node.js 16.20.0 (с помощью nvm - ```nvm install 16.20.0; nvm use```)
 2. yarn
 3. yarn dev
 
@@ -91,6 +87,8 @@ yarn dev
 ## [dev] Добавление локального пакета в проект
 в корне пакета - ```npm link```
 в корне проекта, куда подключается пакет - ```npm link @listim/vue_hall_scheme_view```
+
+***В случае запуска проекта и пакета в разных docker-compose это не сработает**
 
 ## [dev] Запуск в режиме отслеживания изменений
 ```npm run watch```
@@ -121,20 +119,10 @@ yarn dev
     y: 288,
     // END: Обязательные поля
 
+    // START: необязательные поля
+    bg_color: '#a99498',
+    border_color: 'red',
 
-    // START: поля стилизации
-    styles: {
-      width: 25,
-      height: 25,
-      bg_color: '#a99498',
-      border_color: 'red',
-      rx: 3,
-      ry: 3,
-    }
-    // END: поля стилизации
-
-
-    // START: необязательные параметры
     row: '2',
     seat: '26',
     tooltip: {
@@ -155,8 +143,7 @@ yarn dev
     // Люьые дополнительные поля
     location_place_id: 28788409,
     eplace_id: 12345621,
-
-    opened: true, // место оценено
+    available: true,
     reserve_status: 'by_user' // 'closed' | 'available' | 'reserved'
     price: 100,
   },

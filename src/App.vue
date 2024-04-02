@@ -80,6 +80,20 @@
     LoaderControl.decreaseCount()
   })
 
+
+
+  // FIXME: START: костыль для проброса события в дочерние компоненты
+  // const isClearSelectedSeats = ref(false)
+  // provide('isClearSelectedSeats', isClearSelectedSeats)
+
+  // hallSchemeApp.on(events.clearSelectedSeats, () => {
+  //   console.log(123213)
+  //   isClearSelectedSeats.value = true
+  // })
+  //FIXME: END: костыль для проброса события в дочерние компоненты
+
+
+
   const getComponent = computed(() => SchemeAdminView)
 </script>
 
@@ -91,7 +105,8 @@
     @changed-seats-state="handleChangedSeatsState"
     @unselect-seats="handleUnselectSeats"
     @change-fullscreen-mode="handleChangeFullscreenMode"
-  />
+    />
+    <!-- @clear-selected-seats="clearSelectedSeats = false" -->
   <!-- <router-view
     @changed-seats-state="updateSelectedSeatsIds"
   >

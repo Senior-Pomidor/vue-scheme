@@ -1,0 +1,268 @@
+{
+	"info": {
+		"_postman_id": "05f47b94-3e08-4372-b175-5ade2d158cb7",
+		"name": "HallScheme",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2664449",
+		"_collection_link": "https://bold-comet-962722.postman.co/workspace/Listim~74a96bf0-478d-4ff7-bb11-954380f0d666/collection/2664449-05f47b94-3e08-4372-b175-5ade2d158cb7?action=share&source=collection_link&creator=2664449"
+	},
+	"item": [
+		{
+			"name": "index",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{COOKIE}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{DOMAIN}}/admin/api/events/seats?event_id=52630",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"admin",
+						"api",
+						"events",
+						"seats"
+					],
+					"query": [
+						{
+							"key": "event_id",
+							"value": "52630"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "change",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{COOKIE}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"seats\":[ {\r\n            \"id\": 4,\r\n            \"row\": \"4\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 100,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280418,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": 7,\r\n            \"row\": \"7\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 175,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280372,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        }],\r\n    \"price\": 300,\r\n    \"is_widget\": true,\r\n    \"is_cashbox\": true,\r\n    \"is_api\": true,\r\n    \"event_id\": 52630\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/admin/api/events/seats/change",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"admin",
+						"api",
+						"events",
+						"seats",
+						"change"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "open",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{COOKIE}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"seats\":[ {\r\n            \"id\": 4,\r\n            \"row\": \"4\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 100,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280418,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": 7,\r\n            \"row\": \"7\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 175,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280372,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        }],\r\n    \"price\": 300,\r\n    \"is_widget\": true,\r\n    \"is_cashbox\": true,\r\n    \"is_api\": true,\r\n    \"event_id\": 52630\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/admin/api/events/seats/open",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"admin",
+						"api",
+						"events",
+						"seats",
+						"open"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "close",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{COOKIE}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"seats\":[ {\r\n            \"id\": 4,\r\n            \"row\": \"4\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 100,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280418,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": 7,\r\n            \"row\": \"7\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 175,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280372,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        }],\r\n    \"price\": 300,\r\n    \"is_widget\": true,\r\n    \"is_cashbox\": true,\r\n    \"is_api\": true,\r\n    \"event_id\": 52630\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/admin/api/events/seats/close",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"admin",
+						"api",
+						"events",
+						"seats",
+						"close"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Basket/Reserve",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{COOKIE}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"seats\":[ {\r\n            \"id\": 4,\r\n            \"row\": \"4\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 100,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280418,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": 7,\r\n            \"row\": \"7\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 175,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280372,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        }]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/admin/basket/reserve_places?for_cashbox=0",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"admin",
+						"basket",
+						"reserve_places"
+					],
+					"query": [
+						{
+							"key": "for_cashbox",
+							"value": "0"
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Basket/UnReserve",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{COOKIE}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"seats\":[ {\r\n            \"id\": 4,\r\n            \"row\": \"4\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 100,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280418,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"id\": 7,\r\n            \"row\": \"7\",\r\n            \"seat\": \"1\",\r\n            \"coord_x\": 175,\r\n            \"coord_y\": 25,\r\n            \"bg_color\": \"#fff\",\r\n            \"border_color\": [\r\n                \"#ff6bbb\",\r\n                \"#cb668c\"\r\n            ],\r\n            \"tooltip\": null,\r\n            \"reserved_by_user\": false,\r\n            \"sell_channels\": {\r\n                \"is_widget\": true,\r\n                \"is_api\": true,\r\n                \"is_cashbox\": true\r\n            },\r\n            \"price\": \"500.00\",\r\n            \"status\": \"available\",\r\n            \"sector\": {\r\n                \"id\": 1,\r\n                \"name\": \"Партер\"\r\n            },\r\n            \"event_place\": {\r\n                \"id\": 280372,\r\n                \"price\": \"500.00\",\r\n                \"event\": {\r\n                    \"id\": 52630\r\n                }\r\n            }\r\n        }]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/admin/basket/unreserve_places?for_cashbox=0",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"admin",
+						"basket",
+						"unreserve_places"
+					],
+					"query": [
+						{
+							"key": "for_cashbox",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "DOMAIN",
+			"value": "https://localhost",
+			"type": "string"
+		},
+		{
+			"key": "COOKIE",
+			"value": "_ym_uid=1640702542142759691; _ga=GA1.1.1963419439.1645866785; admin_extend_scroll=0; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6InJMS2RRUThWS2p3bzZibkszR3VVV1E9PSIsInZhbHVlIjoiTWJ2dEFhWEwwUngzWXNMZXBlK3NiNjdKYTV2NytXN3V3ZWtZUVdwRkoycHlDWDd0SUVTZnh0Q1poYUhGZ0U2TzBjN29WN0VocWMrZXJJOEprODN2UGNxc290UjhnZDlJZlNpMHRrOTVDb3dUR2FmSHBmT1hpSG5YUUhpNkk3dDloRlFWTFdKVDhMOXBac0JmN2RIczNvM1dKWkdldDFXZTAvY3czRGhkczZ6ai9jRERHb2xobjlSVWFTd0M2NDRGemZ3UDAxMmRaQ1g4UGx4cTlhUXRhTS9VLzB6L0ZlNU1yamhlcUE4WVpsND0iLCJtYWMiOiJhZDFiNTU4NjNlYjhjYTZhZGRhZDQ2ZTBlODFlMjM4NWRiMzVjZjBlMDQ5ZDIyZjJkNGM5MGNiZDgwNzAxODlhIiwidGFnIjoiIn0%3D; _ym_d=1699892381; adminer_key=b6c04a4cbe8184963ec88db9aaafd01d; adminer_sid=l83cfcg9avm0dals1btk32c5bn; _fbp=fb.0.1700345631585.1346196548; _ga_BVZM7XF22W=GS1.1.1702333239.9.0.1702333524.60.0.0; _ga_VWJE0T314M=GS1.1.1703154070.12.0.1703154949.0.0.0; admin_menu_scroll=666; XSRF-TOKEN=eyJpdiI6IjNGMWtGNkdXeTZZZ1JSWkxcL1BqTVwvZz09IiwidmFsdWUiOiIyQitNcjlUTElLYnBZRXZiMEFOTUhMNDhWN0h6R1ZHcU0rVTA1bm4xTWozXC9SK1duc251clVJbnhMME5LM2hKVTRCVVwvNlE2YWRmS2dWclhwRkxVKzlnPT0iLCJtYWMiOiIwOWM5MzQ5N2Y4ZTUzNTE1ODM2Mjc0NGNlMjk4ZjQ0NjI2NzMxZThhOTQxMWIxNWM4Yzg5NTg4M2RjM2M0MThlIn0%3D; laravel_session=eyJpdiI6IkJUWDNYZFdnYlR6cnNvTkZSdVwvSWJBPT0iLCJ2YWx1ZSI6IlI3dVJleWtKcVwvVmRpYWNFb21BeWRDd0hROVBER1NtNGtpUngzSThETkU3cFc0NHVmdEtMWVJHMGVqd1RWbXVLSFRRZU82RDZDR1MySWNidTNOenlZZz09IiwibWFjIjoiYTRjZGQzODcwZThkNjBiNTNlMzM4MTUyYzMyZjFiNjU2ZWYzZjdhNDJkZGRkMTI5MWIwNDY0ZTQxYjliMGVhNiJ9",
+			"type": "string"
+		}
+	]
+}

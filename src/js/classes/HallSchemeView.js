@@ -1,22 +1,31 @@
 class HallSchemeView {
-  // const events
+  #rootSelector
+  #rootElement
+  #appId
 
-  constructor({ el }) {
-    this._rootSelector = el || ''
-    this.appId = Date.now()
-    this.rootElement = this._rootSelector
-      ? document.querySelector(this._rootSelector)
-      : document
+  constructor(rootSelector, options = {}) {
+    if (!rootSelector) {
+      throw new Error('[HallSchemeView] constructor: rootSelector is required')
+    }
 
+    this.#rootSelector = rootSelector
+    this.#rootElement = document.querySelector(this.#rootSelector)
+
+    if (!this.#rootElement) {
+      throw new Error('[HallSchemeView] constructor: no Element with provided rootSelector')
+    }
+
+    this.#appId = Date.now()
     this.events = {
-      setSchemeConfig: `setSchemeConfig${this.appId}`,
-      setSchemeSeatsToApp: `setSchemeSeatsToApp${this.appId}`,
-      updateSeatsChunk: `updateSeatsChunk${this.appId}`,
-      setSelectedSeats: `setSelectedSeats${this.appId}`,
-      unselectSeats: `unselectSeat${this.appId}`,
-      setSelectionFilters: `setSelectionFilters${this.appId}`,
-      loaderAddCount: `loaderAddCount${this.appId}`,
-      loaderDecreaseCount: `loaderDecreaseCount${this.appId}`,
+      setSchemeConfig: `setSchemeConfig${this.#appId}`,
+      setSchemeSeatsToApp: `setSchemeSeatsToApp${this.#appId}`,
+      updateSeatsChunk: `updateSeatsChunk${this.#appId}`,
+      setSelectedSeats: `setSelectedSeats${this.#appId}`,
+      unselectSeats: `unselectSeat${this.#appId}`,
+      setSelectionFilters: `setSelectionFilters${this.#appId}`,
+      loaderAddCount: `loaderAddCount${this.#appId}`,
+      loaderDecreaseCount: `loaderDecreaseCount${this.#appId}`,
+      // clearSelectedSeats: `clearSelectedSeats${this.#appId}`,
     }
 
     this.selectedSeats = {}
@@ -32,8 +41,8 @@ class HallSchemeView {
   }
 
   on(eventName, handler) {
-    eventName = eventName.split(this.appId)[0]
-    console.log(eventName)
+    eventName = eventName.split(this.#appId)[0]
+
     // обрезать айдишку
     if (!this.events[eventName]) {
       console.log(`[HallSchemeApp] Неизвестное событие: ${eventName}`)
@@ -41,7 +50,7 @@ class HallSchemeView {
       return
     }
 
-    this.rootElement.addEventListener(this.events[eventName], handler)
+    this.#rootElement.addEventListener(this.events[eventName], handler)
   }
 
   setSelectionFilters(filters) {
@@ -51,7 +60,7 @@ class HallSchemeView {
       detail: { filters },
     })
 
-    this.rootElement.dispatchEvent(event)
+    this.#rootElement.dispatchEvent(event)
   }
 
   setSchemeConfig(config) {
@@ -59,7 +68,7 @@ class HallSchemeView {
       detail: { config },
     })
 
-    this.rootElement.dispatchEvent(event)
+    this.#rootElement.dispatchEvent(event)
   }
 
   setSchemeSeatsToApp(seats) {
@@ -67,7 +76,7 @@ class HallSchemeView {
       detail: { seats },
     })
 
-    this.rootElement.dispatchEvent(event)
+    this.#rootElement.dispatchEvent(event)
   }
 
   updateSeatsChunk(seats) {
@@ -75,7 +84,7 @@ class HallSchemeView {
       detail: { seats },
     })
 
-    this.rootElement.dispatchEvent(event)
+    this.#rootElement.dispatchEvent(event)
   }
 
   getSelectedSeats() {
@@ -89,7 +98,7 @@ class HallSchemeView {
       detail: { seats },
     })
 
-    this.rootElement.dispatchEvent(event)
+    this.#rootElement.dispatchEvent(event)
   }
 
   unselectSeats(ids) {
@@ -97,24 +106,31 @@ class HallSchemeView {
       detail: { ids },
     })
 
-    this.rootElement.dispatchEvent(event)
+    this.#rootElement.dispatchEvent(event)
   }
 
+  // clearSelectedSeats() {
+  //   console.log('qwe')
+  //   const event = new CustomEvent(this.events.clearSelectedSeats)
+
+  //   this.#rootElement.dispatchEvent(event)
+  // }
+
   getRootElement() {
-    return this.rootElement
+    return this.#rootElement
   }
 
 
   loaderAddCount() {
     const event = new CustomEvent(this.events.loaderAddCount)
 
-    this.rootElement.dispatchEvent(event)
+    this.#rootElement.dispatchEvent(event)
   }
 
   loaderDecreaseCount() {
     const event = new CustomEvent(this.events.loaderDecreaseCount)
 
-    this.rootElement.dispatchEvent(event)
+    this.#rootElement.dispatchEvent(event)
   }
 
   // setConfig(config) {
