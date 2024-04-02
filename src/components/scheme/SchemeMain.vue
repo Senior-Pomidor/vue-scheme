@@ -177,15 +177,15 @@
   //   StateHistoryManager.saveState(seatsState.value)
   // }
 
-  // watch(() => getSeats.value, newVal => {
-  //   currentSelectedSeats.value = {}
-  //   seatsState.value.selectedSeats = {}
+  watch(() => getSeats.value, newVal => {
+    currentSelectedSeats.value = {}
+    seatsState.value.selectedSeats = {}
 
-  //   StateHistoryManager.clearState()
-  //   StateHistoryManager.saveState(seatsState.value)
+    StateHistoryManager.clearState()
+    StateHistoryManager.saveState(seatsState.value)
 
-  //   clearSelectedSeats()
-  // }, { deep: true })
+    // clearSelectedSeats()
+  }, { deep: true })
 
   const isModeUnSelection = computed(() => !isModeGrabbing.value && isControlKey.value)
   const isModeSelection = computed(() => !isModeGrabbing.value && !isModeUnSelection.value)
