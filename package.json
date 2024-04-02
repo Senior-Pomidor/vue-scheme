@@ -1,7 +1,7 @@
 {
   "name": "@listim/vue_hall_scheme_view",
   "private": false,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "author": "Afisha tickets",
   "description": "Vue app for rendering hall schema",
@@ -44,12 +44,6 @@
     "yarn": "^1.22.19"
   },
   "files": ["dist"],
-  "main": "dist/vue_hall_scheme_view.umd.js",
-  "module": "./dist/vue_hall_scheme_view.js",
-  "exports": {
-    ".": {
-      "import": "./dist/vue_hall_scheme_view.js",
-      "require": "./dist/vue_hall_scheme_view.umd.js"
-    }
-  }
+  "main": "./dist/vue_hall_scheme_view.cjs",
+  "module": "./dist/vue_hall_scheme_view.js"
 }
