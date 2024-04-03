@@ -1,7 +1,7 @@
 # [<span style="color: #15b881">Vue Hall Scheme View</span>](https://gitlab.rambler.ru/listim/vue-hall-scheme-view)
 ## Node.js version
 
-<span style="color: #15b881">16.20.0</span>
+<span style="color: #15b881">20.12.0</span>
 
 ### Package manager - <span style="color: #15b881">Yarn</span>
 
@@ -80,7 +80,7 @@ yarn dev
 ```
 
 #### - Запуск без Docker
-1. установить Node.js 16.20.0 (с помощью nvm - ```nvm install 16.20.0; nvm use```)
+1. установить Node.js 20.12.0 (с помощью nvm - ```nvm install 20.12.0; nvm use```)
 2. yarn
 3. yarn dev
 
@@ -121,8 +121,8 @@ yarn dev
     // END: Обязательные поля
 
     // START: необязательные поля
-    bg_color: '#a99498',
-    border_color: 'red',
+    bg_color: '#a99498', // || ['#a99498', '#fefefe'] // [bg_color, bg_color_hover]
+    border_color: '#00aaee', // || ['#a99498', '#fefefe'] // [border_color, border_color_hover]
 
     row: '2',
     seat: '26',

@@ -1,4 +1,4 @@
-FROM node:16.20.0-alpine
+FROM node:20.12.0-alpine
 
 COPY ./ ./var/www/html/frontend
 
