@@ -96,30 +96,37 @@
 }
 
 .seat {
+  // :deep(rect) {
+  //   // --bg-color: #ff7b00!important;
+  //   // fill: #ff7b00;
+  //   // stroke: #ff7b00;
+  // }
+
+  transition: opacity .3s ease;
 
   &._selected {
     :deep(rect) {
-      fill: #646cff;
-      stroke: none;
+      fill: #676ff6;
     }
-  }
 
-  // &._close {
-  //   :deep(rect) {
-  //     fill: red;
-  //   }
-  // }
+    .hover({
+      :deep(rect) {
+        fill: #353ffb;
+      }
+    })
+  }
 
   &._unselected {
     :deep(rect) {
-      fill: red;
-      stroke: none;
+      fill: #f92b2b;
     }
   }
 
-  // &._opened {
-  //   fill: #15b881;
-  // }
+  &._disabled {
+    opacity: .5;
+    user-select: none;
+    pointer-events: none;
+  }
 }
 
 #selectionFrame {

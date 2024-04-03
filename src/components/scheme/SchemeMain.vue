@@ -796,17 +796,17 @@
             ref="$schemePlaces"
             :class="{
               _selected: seatsState.selectedSeats[mapPlace.id] || currentSelectedSeats[mapPlace.id],
-              // _opened: mapPlace.opened,
+              _disabled: !getQuotaSeats[mapPlace.id],
               _unselected: currentUnSelectedSeats[mapPlace.id],
             }"
-            :selectable="!!getQuotaSeats[mapPlace.id]"
             :seat="mapPlace"
             :seat-width="props.config.seat_width || 20"
             :seat-height="props.config.seat_height || 20"
             @click="handleClick(mapPlace.id)"
             @mouseover="onSeatHover(mapPlace)"
             @mouseleave="isTooltip = false"
-          />
+            />
+            <!-- :selectable="!!getQuotaSeats[mapPlace.id]" -->
         </g>
       </g>
 
