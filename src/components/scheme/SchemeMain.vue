@@ -61,17 +61,30 @@
       }
 
       // HACK: временное решение для фильтров выделения
+      // FIXME: переписать этот говнокод при первой же возможности
       for (const filter in props.filters) {
         switch (filter) {
           case 'attrs':
             for (const attr in props.filters.attrs) {
               if (Array.isArray(props.filters.attrs[attr])) {
-                if (!props.filters.attrs[attr].includes(seat[attr])) {
+                if (props.filters.attrs[attr].length && !props.filters.attrs[attr].includes(seat[attr])) {
                   isValid = false
 
                   break
                 }
-              } else if (String(props.filters.attrs[attr]) !== String(seat[attr])) {
+              } else if (typeof props.filters.attrs[attr] === 'object') {
+                for (const key in props.filters.attrs[attr]) {
+
+                  // есть хоть один true вариант
+                  if (JSON.stringify(props.filters.attrs[attr][key]) === JSON.stringify(seat[attr][key])) {
+                    isValid = true
+
+                    break
+                  }
+
+                  isValid = false
+                }
+              } else if (JSON.stringify(props.filters.attrs[attr]) !== JSON.stringify(seat[attr])) {
                 isValid = false
 
                 break
@@ -740,21 +753,12 @@
 
 
   // FIXME: START: костыль для очистки выделения
-  // const isClearSelectedSeats = inject('isClearSelectedSeats')
+  const hallSchemeApp = inject('hallSchemeApp')
 
-  // const getIsClearSelectedSeats = computed(() => {
-  //   console.log(isClearSelectedSeats.value)
-  //   return isClearSelectedSeats.value
-  // })
-
-  // watch(() => getIsClearSelectedSeats.value, newVal => {
-
-  //   console.log('asdsda')
-  //   if (newVal) {
-  //     clearSelectedSeats()
-  //   emit('clearSelectedSeats')
-  //   }
-  // })
+  hallSchemeApp.on(hallSchemeApp.events['clearSelectedSeats'], () => {
+    seatsState.value.selectedSeats = {}
+    StateHistoryManager.clearState()
+  })
   // FIXME: END: костыль для очистки выделения
 
   onMounted(() => {

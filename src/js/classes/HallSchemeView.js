@@ -25,7 +25,7 @@ class HallSchemeView {
       setSelectionFilters: `setSelectionFilters${this.#appId}`,
       loaderAddCount: `loaderAddCount${this.#appId}`,
       loaderDecreaseCount: `loaderDecreaseCount${this.#appId}`,
-      // clearSelectedSeats: `clearSelectedSeats${this.#appId}`,
+      clearSelectedSeats: `clearSelectedSeats${this.#appId}`,
     }
 
     this.selectedSeats = {}
@@ -109,12 +109,12 @@ class HallSchemeView {
     this.#rootElement.dispatchEvent(event)
   }
 
-  // clearSelectedSeats() {
-  //   console.log('qwe')
-  //   const event = new CustomEvent(this.events.clearSelectedSeats)
+  clearSelectedSeats() {
+    console.log('qwe')
+    const event = new CustomEvent(this.events.clearSelectedSeats)
 
-  //   this.#rootElement.dispatchEvent(event)
-  // }
+    this.#rootElement.dispatchEvent(event)
+  }
 
   getRootElement() {
     return this.#rootElement

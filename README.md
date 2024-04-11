@@ -161,8 +161,26 @@ yarn dev
 - getRootElement() {Element} - элемент, в который встроена схема и на котором генерируются события
 - setSchemeSeatsToApp({id: {seat}}) {void} - установить места на схеме
 - getSelectedSeats() {{id: {seat}}} - получить выделенные места
+- clearSelectedSeats() {{id: {seat}}} - очистить выделенные места
 - on(str event, handler()) {void} - коллбэк на события, генерируемые методами класса
 - setSelectionFilters({filter_name: value}) {void} - установить фильтры, по которым выбираются места, с которыми можно взаимодействовать (выделять)
+
+```javascript
+setSelectionFilters({
+  // фильтр по атрибутам места
+  attrs: {
+    status: ['available', 'closed'],
+    // если массив, проверяет на соответствие каждое значение
+    // seat.status: 'available'
+    // seat.status: 'closed'
+    x: 25, // строка или число сравнивается напрямую
+    sell_chanels: {
+      is_widget: true,
+    },
+    // в объектах сранивается значение каждого ключа, указанного в фильтре
+  }
+})
+```
 - loaderOn()/loaderOff() {void} - включение/выключение лоадера
 
 

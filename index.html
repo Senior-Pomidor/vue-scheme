@@ -37,7 +37,6 @@
 
       const vueHallSchemeApp = new VueHallSchemeView('#vue_hall_scheme_app')
 
-      const hallSchemeApp2 = new VueHallSchemeView('#vue_hall_scheme_app_2')
 
       fetchSelectionBtn.onclick = () => {
         console.log(fetchSelectionBtn)
@@ -47,7 +46,14 @@
       // фильтр выделения мест
       vueHallSchemeApp.setSelectionFilters({
         attrs: {
+          x: 25,
           status: ['available'],
+          sell_channels: {
+            // is_widget: false, // виджет
+            is_api: true, // шлюзы
+            // is_cashbox: true, // касса
+          },
+
         }
       })
 
