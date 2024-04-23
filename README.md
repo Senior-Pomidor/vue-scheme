@@ -3,7 +3,7 @@
 
 <span style="color: #15b881">20.12.0</span>
 
-### Package manager - <span style="color: #15b881">Yarn</span>
+### Package manager - <span style="color: #15b881">NPM</span>
 
 ## Vue 3 + Vite
 
@@ -55,7 +55,7 @@ docker compose start
 
 3. Установить node_modules
 ```bash
-docker compose exec frontend sh -c 'yarn'
+docker compose exec frontend sh -c 'npm i'
 ```
 
 ##### Запуск
@@ -68,7 +68,7 @@ docker compose start
 
 Короткая команда
 ```bash
-docker compose exec frontend sh -c 'yarn dev'
+docker compose exec frontend sh -c 'npm run dev'
 ```
 
 или перейти в контейнер и запустить в нём приложение
@@ -76,13 +76,13 @@ docker compose exec frontend sh -c 'yarn dev'
 docker compose exec frontend sh
 
 # в контейнере
-yarn dev
+npm run dev
 ```
 
 #### - Запуск без Docker
 1. установить Node.js 20.12.0 (с помощью nvm - ```nvm install 20.12.0; nvm use```)
-2. yarn
-3. yarn dev
+2. npm i
+3. npm run dev
 
 
 ## [dev] Добавление локального пакета в проект
