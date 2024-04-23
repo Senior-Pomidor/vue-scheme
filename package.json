@@ -17,8 +17,6 @@
     "watch": "vite build --watch",
     "start": "vite",
     "build": "vite build",
-    "build:deploy": "vite build; npm run deploy",
-    "deploy": "git add -f dist && git commit -m 'deploy' && git push origin `git subtree split --prefix dist master`:gh-pages --force && git add -A && git commit -m 'commit changes before deploy'",
     "preview": "vite preview",
     "el:check": "eslint --ext .js,.vue --ignore-path .eslintignore src",
     "el:fix": "eslint --ext .js,.vue --ignore-path .eslintignore --fix src"
@@ -39,8 +37,7 @@
     "terser": "^5.24.0",
     "vite": "^4.4.5",
     "vite-plugin-eslint": "^1.8.0",
-    "vite-plugin-stylelint": "^4.3.0",
-    "yarn": "^1.22.19"
+    "vite-plugin-stylelint": "^4.3.0"
   },
   "files": ["dist"],
   "main": "./dist/vue_hall_scheme_view.cjs",
