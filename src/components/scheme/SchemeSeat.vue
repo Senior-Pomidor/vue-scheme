@@ -20,8 +20,8 @@
     <!-- :fill="props.seat.bg_color || '#a99498'"
       :stroke="props.seat.border_color || 'none'" -->
 
-    <template v-if="props.seat.sell_channels">
-      <!-- шлюз (зелёный) -->
+    <!-- <template v-if="props.seat.sell_channels">
+      шлюз (зелёный)
       <circle
         v-if="props.seat.sell_channels.is_api"
         :cx="getSellChanelCoords.is_api.cx"
@@ -31,7 +31,7 @@
       >
       </circle>
 
-      <!-- касса (голубой) -->
+      касса (голубой)
       <circle
         v-if="props.seat.sell_channels.cashbox"
         :cx="getSellChanelCoords.cashbox.cx"
@@ -41,7 +41,7 @@
       >
       </circle>
 
-      <!-- виджет (синий) -->
+      виджет (синий)
       <circle
         v-if="props.seat.sell_channels.widget"
         :cx="getSellChanelCoords.widget.cx"
@@ -50,7 +50,7 @@
         fill="#2e58f3"
       >
       </circle>
-    </template>
+    </template> -->
 
     <text
       class="seat__text"
@@ -130,22 +130,22 @@
     return styles
   })
 
-  const getSellChanelCoords = computed(() => ({
-    is_api: {
-      cx: props.seat.x + 3 || 0,
-      cy: props.seat.y + 9 || 0,
-    },
+  // const getSellChanelCoords = computed(() => ({
+  //   is_api: {
+  //     cx: props.seat.x + 3 || 0,
+  //     cy: props.seat.y + 9 || 0,
+  //   },
 
-    widget: {
-      cx: props.seat.x + 17 || 0,
-      cy: props.seat.y + 17 || 0,
-    },
+  //   widget: {
+  //     cx: props.seat.x + 17 || 0,
+  //     cy: props.seat.y + 17 || 0,
+  //   },
 
-    cashbox: {
-      cx: props.seat.x + 3 || 0,
-      cy: props.seat.y + 3 || 0,
-    },
-  }))
+  //   cashbox: {
+  //     cx: props.seat.x + 3 || 0,
+  //     cy: props.seat.y + 3 || 0,
+  //   },
+  // }))
 
   const $el = ref(null)
 
