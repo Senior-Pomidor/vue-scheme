@@ -9,7 +9,13 @@
 //     y: 25,
 //     bg_color: "#fff",
 //     border_color: ["#e30611", "#ff000b"],
-//     tooltip: null,
+//     tooltip: {
+    //   html: `
+    //     <div class="place-tooltip">
+    //       tooltip_content
+    //     </div>
+    //   `,
+    // },
 //     reserved_by_user: false,
 //     sell_channels: {
 //       is_widget: true,
@@ -71,7 +77,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -100,7 +112,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -129,7 +147,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -158,7 +182,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -187,7 +217,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -216,7 +252,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -245,7 +287,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -274,7 +322,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -303,7 +357,13 @@ const MAP_PLACES = {
     y: 25,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -332,7 +392,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -361,7 +427,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -390,7 +462,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -419,7 +497,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -448,7 +532,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -477,7 +567,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -506,7 +602,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -535,7 +637,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -564,7 +672,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -593,7 +707,13 @@ const MAP_PLACES = {
     y: 50,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -622,7 +742,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -651,7 +777,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -680,7 +812,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -709,7 +847,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -738,7 +882,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -767,7 +917,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -796,7 +952,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -825,7 +987,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -854,7 +1022,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -883,7 +1057,13 @@ const MAP_PLACES = {
     y: 75,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -912,7 +1092,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -941,7 +1127,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -970,7 +1162,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -999,7 +1197,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1028,7 +1232,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1057,7 +1267,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1086,7 +1302,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1115,7 +1337,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1144,7 +1372,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1173,7 +1407,13 @@ const MAP_PLACES = {
     y: 100,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1202,7 +1442,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1231,7 +1477,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1260,7 +1512,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1289,7 +1547,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1318,7 +1582,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1347,7 +1617,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1376,7 +1652,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1405,7 +1687,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1434,7 +1722,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1463,7 +1757,13 @@ const MAP_PLACES = {
     y: 125,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1492,7 +1792,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1521,7 +1827,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1550,7 +1862,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1579,7 +1897,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1608,7 +1932,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1637,7 +1967,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1666,7 +2002,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1695,7 +2037,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1724,7 +2072,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1753,7 +2107,13 @@ const MAP_PLACES = {
     y: 150,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1782,7 +2142,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1811,7 +2177,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1840,7 +2212,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1869,7 +2247,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1898,7 +2282,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1927,7 +2317,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1956,7 +2352,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -1985,7 +2387,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -2014,7 +2422,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -2043,7 +2457,13 @@ const MAP_PLACES = {
     y: 175,
     bg_color: "#fff",
     border_color: ["#e30611", "#ff000b"],
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: {
       is_widget: true,
@@ -2072,7 +2492,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2091,7 +2517,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2110,7 +2542,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2129,7 +2567,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2148,7 +2592,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2167,7 +2617,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2186,7 +2642,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2205,7 +2667,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2224,7 +2692,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2243,7 +2717,13 @@ const MAP_PLACES = {
     y: 200,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2262,7 +2742,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2281,7 +2767,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2300,7 +2792,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2319,7 +2817,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2338,7 +2842,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2357,7 +2867,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2376,7 +2892,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2395,7 +2917,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2414,7 +2942,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2433,7 +2967,13 @@ const MAP_PLACES = {
     y: 225,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2452,7 +2992,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2471,7 +3017,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2490,7 +3042,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2509,7 +3067,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2528,7 +3092,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2547,7 +3117,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2566,7 +3142,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2585,7 +3167,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2604,7 +3192,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,
@@ -2623,7 +3217,13 @@ const MAP_PLACES = {
     y: 250,
     bg_color: "#999",
     border_color: "#808080",
-    tooltip: null,
+    tooltip: {
+      html: `
+        <div class="place-tooltip">
+          tooltip_content
+        </div>
+      `,
+    },
     reserved_by_user: false,
     sell_channels: [],
     price: null,

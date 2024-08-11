@@ -738,6 +738,7 @@
   }
 
 
+  // START: tooltip
   import VTooltip from '../../components/ui/VTooltip.vue'
 
   const isTooltip = ref(false)
@@ -745,12 +746,20 @@
   const tooltipParent = ref('')
 
   const onSeatHover = (seat) => {
+    if (!seat.tooltip) {
+      return
+    }
+
     tooltipHtml.value = seat.tooltip?.html || ''
     tooltipParent.value = `[id="${seat.id}"]`
 
-     isTooltip.value = true
+    isTooltip.value = true
   }
 
+  const onSeatHoverLeave = () => {
+    isTooltip.value = false
+  }
+  // END: tooltip
 
   // FIXME: START: костыль для очистки выделения
   const hallSchemeApp = inject('hallSchemeApp')
@@ -808,7 +817,7 @@
             :seat-height="props.config.seat_height || 20"
             @click="handleClick(mapPlace.id)"
             @mouseover="onSeatHover(mapPlace)"
-            @mouseleave="isTooltip = false"
+            @mouseleave="onSeatHoverLeave"
             />
             <!-- :selectable="!!getQuotaSeats[mapPlace.id]" -->
         </g>
@@ -842,13 +851,16 @@
       @click-full-screen="onFullScreenBtnClick"
     />
 
-    <!-- <VTooltip
+    <VTooltip
       v-show="isTooltip"
       :show="isTooltip"
+      :position="'horizontal'"
       :parent-selector="tooltipParent"
+      @mouseenter="isTooltip = true"
+      @mouseleave="onSeatHoverLeave"
     >
       <div v-html="tooltipHtml"></div>
-    </VTooltip> -->
+    </VTooltip>
   </div>
 </template>
 

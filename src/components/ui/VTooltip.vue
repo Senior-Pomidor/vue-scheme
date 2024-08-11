@@ -3,7 +3,7 @@
     class="tooltip-dynamic"
     :class="classes"
     :style="style"
-  >
+>
 
     <!-- {{ parentSelector }} -->
     <!-- {{ parentEl }} -->
