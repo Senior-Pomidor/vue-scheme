@@ -1,28 +1,30 @@
 .scheme-scale-controls {
   @btn_deep: 3px;
+  --btn_radius: 4px;
 
-  margin-left: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  margin-left: auto;
+  border: .5px solid @gray-400;
+  border-radius: var(--btn_radius);
 
   button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     padding: 0;
-    border-radius: 6px;
-    background-color: #f4f7fb;
-    font-size: 20px;
-    box-shadow: @btn_deep @btn_deep @blue-light;
+    border-radius: 0px;
+    background-color: @btn-gray-light;
+    font-size: 15px;
     user-select: none;
     transition:
-      transform .2s ease,
-      box-shadow .2s ease;
+      background-color .2s ease;
 
-    +button {
-      margin-top: .5rem;
+    + button {
+      border-top: 1px solid @gray-400;
     }
 
     &:active,
@@ -31,9 +33,7 @@
     }
 
     .hover({
-      border: none;
-      transform: translate(@btn_deep, @btn_deep);
-      box-shadow: 0px 0px @blue-light;
+      background-color: @btn-gray-light--hover;
     })
 }
 }
