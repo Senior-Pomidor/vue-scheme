@@ -4,7 +4,7 @@
   import VLoader from '../../components/ui/VLoader.vue'
 
   // vue
-  import { ref, computed, onMounted, watch, inject } from 'vue'
+  import { ref, computed, onMounted, watch, inject, nextTick } from 'vue'
 
   // utils
   import { throttle } from '../../utils/throttle'
@@ -655,7 +655,6 @@
   }
   // END: zoom
 
-
   const grabbing = () => {
     const $elGrabbingWraper = document.querySelector('.elSvgMapWrapper')
     let previousTranslateCoords = { ...elSvgMapTranslateCoords.value }
@@ -769,6 +768,16 @@
     StateHistoryManager.clearState()
   })
   // FIXME: END: костыль для очистки выделения
+
+  const isFirstRender = ref(true)
+  watch(() => props.seats, () => {
+    if (!isFirstRender.value) {
+      return
+    }
+
+    isFirstRender.value = false
+    nextTick(centerSvgMap)
+  })
 
   onMounted(() => {
     // таймаут для прогрузки свг карты с местами
