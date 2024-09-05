@@ -1,6 +1,7 @@
 <script setup>
   // components
-  import SchemeMain from '../../components/scheme/SchemeMain.vue'
+  import SchemeMain from '@/components/scheme/SchemeMain.vue'
+  import SchemeInfoPopup from '@/components/scheme/SchemeInfoPopup.vue'
 
   // vue
   import { inject } from 'vue'
@@ -32,6 +33,8 @@
       backgroundColor: schemeConfig.background_color || '#efefef'
     }"
   >
+    <SchemeInfoPopup/>
+
     <SchemeMain
       class="schemeAdminView__scheme"
       :seats="schemeSeats"
@@ -40,9 +43,9 @@
       @changed-seats-state="changedSeatsStateHandler"
       @unselect-seats="unselectSeatsHandler"
       @change-fullscreen-mode="emit('changeFullscreenMode')"
-      />
+    />
       <!-- @clear-selected-seats="emit('clearSelectedSeats')" -->
-    </div>
+  </div>
 </template>
 
 <style lang="less" scoped>
