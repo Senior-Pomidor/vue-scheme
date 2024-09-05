@@ -1,7 +1,7 @@
 <script setup>
   import SchemeAdminView from './views/schemeAdminView/SchemeAdminView.vue'
 
-  import { provide, inject, ref, computed } from 'vue'
+  import { provide, inject, ref, computed, useTemplateRef, onMounted } from 'vue'
 
   // конфиг схемы
   const schemeConfig = ref({})
@@ -81,17 +81,31 @@
   })
 
   const getComponent = computed(() => SchemeAdminView)
+
+  const schemeWrapperRef = useTemplateRef('schemeWrapper')
+
+  onMounted(() => {
+  // блок скролла страницы при скролле на схеме
+  schemeWrapperRef.value.$el
+    .addEventListener('wheel', function(evt) {
+      const delta = evt.wheelDelta || -evt.detail;
+
+      this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+      evt.preventDefault();
+    })
+  })
 </script>
 
 <template>
   <component
     :is="getComponent"
+    ref="schemeWrapper"
     class="vue_hall_scheme_wrapper"
     :class="{ _full_screen: isFullscreen }"
     @changed-seats-state="handleChangedSeatsState"
     @unselect-seats="handleUnselectSeats"
     @change-fullscreen-mode="handleChangeFullscreenMode"
-    />
+  />
     <!-- @clear-selected-seats="clearSelectedSeats = false" -->
   <!-- <router-view
     @changed-seats-state="updateSelectedSeatsIds"
