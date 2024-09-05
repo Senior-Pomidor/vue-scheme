@@ -158,7 +158,7 @@
 <style lang="less" scoped>
   .seat {
     --fill-color: #999;
-    --fill-color-hover: #808080;
+    --fill-color-hover: #353ffb;
 
     --stroke-color: #808080;
     --stroke-color-hover: #808080;
