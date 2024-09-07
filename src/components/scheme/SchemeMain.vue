@@ -1,17 +1,18 @@
 <script setup>
   // components
-  import SchemeSeat from '../../components/scheme/SchemeSeat.vue'
-  import VLoader from '../../components/ui/VLoader.vue'
+  import SchemeSeat from '@/components/scheme/SchemeSeat.vue'
+  import VLoader from '@/components/ui/VLoader.vue'
 
   // vue
-  import { ref, computed, onMounted, watch, inject, nextTick } from 'vue'
+  import { ref, computed, onMounted, onUnmounted, watch, inject, nextTick } from 'vue'
 
   // utils
-  import { throttle } from '../../utils/throttle'
+  import { throttle } from '@/utils/throttle'
+  import { debounce } from '@/utils/debounce'
 
   // composables
-  import { useUndoRedo } from '../../composables/useUndoRedo'
-  import { useZoom } from '../../composables/useZoom'
+  import { useUndoRedo } from '@/composables/useUndoRedo'
+  import { useZoom } from '@/composables/useZoom'
 
   const props = defineProps({
     config: {
@@ -39,6 +40,7 @@
   //   },
   // }
 
+  const throttleFrequency = 16.7
   const loading = inject('loading')
 
   // места на схеме
@@ -230,42 +232,7 @@
     return ''
   })
 
-  const addGlobalEventListeners = () => {
-    document.addEventListener('keydown', evt => {
-      if (evt.key === 'Shift') {
-        isShiftKey.value = true
-      }
-    })
-
-    document.addEventListener('keyup', evt => {
-      if (evt.key === 'Shift') {
-        isShiftKey.value = false
-      }
-    })
-
-    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
-      if (evt.button === 0) {
-        isMouseDown.value = true
-      }
-    })
-
-    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
-      if (evt.button === 1) {
-        isMouseMiddle.value = true
-      }
-    })
-
-    document.addEventListener('mouseup', evt => {
-      isMouseDown.value = false
-      isMouseMiddle.value = false
-    })
-  }
-
-  const handleClick = id => {
-    if (!isModeSelection.value) {
-      return
-    }
-
+  const toggleSeatSelect = id => {
     if (seatsState.value.selectedSeats[id] || currentSelectedSeats.value[id]) {
       delete currentSelectedSeats.value[id]
       delete seatsState.value.selectedSeats[id]
@@ -433,7 +400,7 @@
       $selectionFrameRect.setAttribute('height', 0)
     }
 
-    const mouseMoveListener = evt => {
+    const mouseMoveListener = throttle(evt => {
       if (currentAction.value !== 'selection') {
         return
       }
@@ -444,9 +411,9 @@
         return
       }
 
-      throttle(drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea), 16.7)
-      throttle(doSelection(), 16.7)
-    }
+      drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
+      doSelection()
+    }, throttleFrequency)
 
     const mouseUpListener = evt => {
       if (currentAction.value !== 'selection') {
@@ -583,16 +550,16 @@
       $selectionFrameRect.setAttribute('height', 0)
     }
 
-    const mouseMoveListener = evt => {
+    const mouseMoveListener = throttle(evt => {
       if (currentAction.value !== 'unselection' || !isMouseDown.value) {
         return
       }
 
       endCoordsInArea = getCoordsInSvgMapWrapper(evt)
 
-      throttle(drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea), 16.7)
-      throttle(doUnSelection(), 16.7)
-    }
+      drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
+      doUnSelection()
+    }, throttleFrequency)
 
     const mouseUpListener = evt => {
       confirmUnselection()
@@ -717,7 +684,7 @@
       grabEndCoords.y = evt.clientY
     })
 
-    document.addEventListener('mousemove', evt => {
+    const handleMouseMove = throttle(evt => {
       if (currentAction.value === 'grabbing' && (isMouseDown.value || isMouseMiddle.value)) {
         grabEndCoords.x = evt.clientX
         grabEndCoords.y = evt.clientY
@@ -725,7 +692,9 @@
         elSvgMapTranslateCoords.value.x = previousTranslateCoords.x + (grabEndCoords.x - grabStartCoords.x)
         elSvgMapTranslateCoords.value.y = previousTranslateCoords.y + (grabEndCoords.y - grabStartCoords.y)
       }
-    })
+    }, throttleFrequency)
+
+    document.addEventListener('mousemove', handleMouseMove)
 
     document.addEventListener('mouseup', () => {
       if (currentAction.value === 'grabbing') {
@@ -736,7 +705,6 @@
     })
   }
 
-
   // START: tooltip
   import VTooltip from '../../components/ui/VTooltip.vue'
 
@@ -744,7 +712,7 @@
   const tooltipHtml = ref('')
   const tooltipParent = ref('')
 
-  const onSeatHover = (seat) => {
+  const openSeatTooltip = seat => {
     if (!seat.tooltip) {
       return
     }
@@ -755,10 +723,100 @@
     isTooltip.value = true
   }
 
-  const onSeatHoverLeave = () => {
+  const closeSeatTooltip = () => {
     isTooltip.value = false
   }
   // END: tooltip
+
+  // START: scheme global listeners
+  const onSvgSchemeClick = evt => {
+    if (!isModeSelection.value) {
+      return
+    }
+
+    const $seat = evt.target.closest('g[data-seat="true"]')
+
+    if (!$seat) {
+      return
+    }
+
+    const id = $seat.dataset.id
+
+    if (!id) {
+      return
+    }
+
+    toggleSeatSelect(id)
+  }
+
+  // TODO: отрефакторить работу с селекторами
+  const handleSvgSchemeMouseMove = evt => {
+    const $seat = evt.target.closest('g[data-seat="true"]')
+    const $schemeInner = evt.target.closest('g[data-svg-inner="true"]')
+    const $tooltipBody = evt.target.closest('*[data-tooltip-body="true"]')
+    const seatId = $seat?.dataset?.id
+    const seatTooltipHTML = getQuotaSeats.value[seatId]?.tooltip?.html
+
+    if (!$schemeInner && !$tooltipBody) {
+      closeSeatTooltip()
+
+      return
+    }
+
+    if ($seat || seatId || seatTooltipHTML || !$tooltipBody) {
+      closeSeatTooltip()
+
+      nextTick(() => {
+        openSeatTooltip(getQuotaSeats.value[seatId])
+      })
+    }
+  }
+
+  const handleSvgSchemeMouseMoveDebounced = debounce(handleSvgSchemeMouseMove, 300)
+  // END: scheme global listeners
+
+  // START: document global listeners
+  const addGlobalEventListeners = () => {
+    document.addEventListener('mousemove', handleSvgSchemeMouseMoveDebounced)
+
+    document.addEventListener('keydown', evt => {
+      if (evt.key === 'Shift') {
+        isShiftKey.value = true
+      }
+    })
+
+    document.addEventListener('keyup', evt => {
+      if (evt.key === 'Shift') {
+        isShiftKey.value = false
+      }
+    })
+
+    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
+      if (evt.button === 0) {
+        isMouseDown.value = true
+      }
+    })
+
+    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
+      if (evt.button === 1) {
+        isMouseMiddle.value = true
+      }
+    })
+
+    document.addEventListener('mouseup', evt => {
+      isMouseDown.value = false
+      isMouseMiddle.value = false
+    })
+
+    // document.addEventListener('mousemove', handleSvgSchMouseMove)
+  }
+
+  // TODO: доделать остальные
+  const removeGlobalEventListeners = () => {
+    document.removeEventListener('mousemove', handleSvgSchemeMouseMoveDebounced)
+  }
+  // END: document global listeners
+
 
   // FIXME: START: костыль для очистки выделения
   const hallSchemeApp = inject('hallSchemeApp')
@@ -790,12 +848,15 @@
       StateHistoryManager.saveState(seatsState.value)
     }, 100)
   })
+
+  onUnmounted(() => {
+    removeGlobalEventListeners()
+  })
 </script>
 
 <template>
   <div class="scheme-main">
     <VLoader v-show="loading" />
-    <!-- {{ Object.keys(getQuotaSeats).length }} -->
     <svg
       id="elSvgMapWrapper"
       ref="elSvgMapWrapper"
@@ -804,8 +865,13 @@
       xmlns="http://www.w3.org/2000/svg"
       width="100%"
       height="100%"
+      @click="onSvgSchemeClick"
     >
-      <g id="elSvgMap__inner" :transform="`scale(${zoomScale})`">
+      <g
+        id="elSvgMap__inner"
+        :transform="`scale(${zoomScale})`"
+        data-svg-inner="true"
+        >
         <g
           id="elSvgMap"
           ref="elSvgMap"
@@ -821,14 +887,12 @@
               _disabled: !getQuotaSeats[mapPlace.id],
               _unselected: currentUnSelectedSeats[mapPlace.id],
             }"
+            data-seat="true"
+            :data-id="mapPlace.id"
             :seat="mapPlace"
             :seat-width="props.config.seat_width || 20"
             :seat-height="props.config.seat_height || 20"
-            @click="handleClick(mapPlace.id)"
-            @mouseover="onSeatHover(mapPlace)"
-            @mouseleave="onSeatHoverLeave"
-            />
-            <!-- :selectable="!!getQuotaSeats[mapPlace.id]" -->
+          />
         </g>
       </g>
 
@@ -865,8 +929,7 @@
       :show="isTooltip"
       :position="'horizontal'"
       :parent-selector="tooltipParent"
-      @mouseenter="isTooltip = true"
-      @mouseleave="onSeatHoverLeave"
+      data-tooltip-body="true"
     >
       <div v-html="tooltipHtml"></div>
     </VTooltip>
@@ -874,5 +937,5 @@
 </template>
 
 <style lang="less" scoped>
-@import url('./SchemeMain.less');
+  @import url('./SchemeMain.less');
 </style>

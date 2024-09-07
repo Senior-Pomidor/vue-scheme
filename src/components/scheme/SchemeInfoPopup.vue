@@ -134,7 +134,7 @@
       left: 50%;
       width: 100%;
       height: 100%;
-      padding: 2px;
+      padding: 2px 4px;
       border: 1px solid @gray-400;
       border-radius: 4px;
       background-color: @white;
