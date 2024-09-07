@@ -14,12 +14,24 @@
         height: 70vh;
         border: 1px solid blue;
       }
+      .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      button {
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
-    <button id="fetchSelectionBtn" style="margin-left: 500px;">fetch places</button>
-    <button id="confirmSelectionBtn">confirm selection</button>
-    <!-- <button id="clearSelectedSeatsBtn">clear selection</button> -->
+    <div class="buttons">
+      <button id="fetchSelectionBtn">fetch places 1k</button>
+      <button id="fetchSelectionBtn7K">fetch places 7k</button>
+      <button id="confirmSelectionBtn">confirm selection</button>
+      <!-- <button id="clearSelectedSeatsBtn">clear selection</button> -->
+    </div>
 
     <section id="vue_hall_scheme_app"></section>
     <section id="vue_hall_scheme_app_2"></section>
@@ -28,10 +40,12 @@
     <script type="module">
       import { VueHallSchemeView } from './src/main.js'
 
-      import { MAP_PLACES } from './map.js'
+      import { MAP_PLACES, MAP_PLACES_7K } from './map.js'
       const places = MAP_PLACES
+      const places_7k = MAP_PLACES_7K
 
       const fetchSelectionBtn = document.getElementById('fetchSelectionBtn')
+      const fetchSelectionBtn7K = document.getElementById('fetchSelectionBtn7K')
       const confirmSelectionBtn = document.getElementById('confirmSelectionBtn')
       // const clearSelectedSeatsBtn = document.getElementById('clearSelectedSeatsBtn')
 
@@ -42,14 +56,18 @@
         vueHallSchemeApp.setSchemeSeatsToApp(places)
       }
 
+      fetchSelectionBtn7K.onclick = () => {
+        vueHallSchemeApp.setSchemeSeatsToApp(places_7k)
+      }
+
       // фильтр выделения мест
       vueHallSchemeApp.setSelectionFilters({
         attrs: {
-          x: 25,
+          // x: 25,
           status: ['available'],
           sell_channels: {
             // is_widget: false, // виджет
-            is_api: true, // шлюзы
+            // is_api: true, // шлюзы
             // is_cashbox: true, // касса
           },
 
