@@ -365,6 +365,11 @@
       }
 
       const selectionFrame = elSelectionFrameRect.value
+
+      if (!selectionFrame) {
+        return
+      }
+
       const actualCoords = {
         startX: selectionFrame.getBoundingClientRect().x,
         startY: selectionFrame.getBoundingClientRect().y,
@@ -557,6 +562,11 @@
     // проверяются координаты относительно окна браузера
     const doUnSelection = () => {
       const selectionFrame = elSelectionFrameRect.value
+
+      if (!selectionFrame) {
+        return
+      }
+
       const actualCoords = {
         startX: selectionFrame.getBoundingClientRect().x,
         startY: selectionFrame.getBoundingClientRect().y,
