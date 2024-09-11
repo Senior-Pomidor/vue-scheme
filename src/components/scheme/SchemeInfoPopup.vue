@@ -81,6 +81,11 @@
     left: 5px;
     z-index: 1;
     width: calc(100% - 10px);
+    pointer-events: none;
+
+    & > * {
+      pointer-events: all;
+    }
   }
 
   .schemeInfoPopup__btn {
@@ -132,9 +137,8 @@
       z-index: -1;
       top: 50%;
       left: 50%;
-      width: 100%;
+      width: calc(100% + 8px);
       height: 100%;
-      padding: 2px 4px;
       border: 1px solid @gray-400;
       border-radius: 4px;
       background-color: @white;

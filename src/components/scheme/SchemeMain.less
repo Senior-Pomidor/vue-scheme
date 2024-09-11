@@ -106,6 +106,7 @@
   //   // stroke: #ff7b00;
   // }
 
+  user-select: none;
   transition: opacity .3s ease;
 
   &._selected {
@@ -128,8 +129,7 @@
 
   &._disabled {
     fill-opacity: .5;
-    // user-select: none;
-    pointer-events: none;
+    stroke-opacity: .5;
   }
 }
 

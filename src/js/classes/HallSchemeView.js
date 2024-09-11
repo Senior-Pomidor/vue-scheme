@@ -110,7 +110,6 @@ class HallSchemeView {
   }
 
   clearSelectedSeats() {
-    console.log('qwe')
     const event = new CustomEvent(this.events.clearSelectedSeats)
 
     this.#rootElement.dispatchEvent(event)
