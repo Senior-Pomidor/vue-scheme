@@ -127,6 +127,14 @@
     y: 0,
   })
 
+  watch(elSvgMapTranslateCoords, newVal => {
+    if (!newVal) {
+      return
+    }
+
+    elSvgMap.value.setAttribute('transform', `translate(${newVal.x || '0'}, ${newVal.y || '0'})`)
+  }, { deep: true })
+
   // данные для мест на карте
   // const mapPlaces = ref([])
 
@@ -206,6 +214,8 @@
   const isModeSelection = computed(() => !isModeGrabbing.value && !isModeUnSelection.value)
 
   // настройки рамки-выделения на схеме
+  // TODO: выделить selection/unselection mode в отдельную переменную
+  // чтобы изменение других модов не обновляло значение computed
   const getSelectionRectSettings = computed(() => {
     const fill = currentAction.value === 'unselection'
       ? 'rgba(239, 89, 89, .26)'
@@ -220,6 +230,13 @@
     }
   })
 
+  watch(() => getSelectionRectSettings.value, (newVal, oldVal) => {
+    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+      elSelectionFrameRect.value.setAttribute('fill', newVal.fill)
+      elSelectionFrameRect.value.setAttribute('stroke', newVal.stroke)
+    }
+  })
+
   const getGrabbingClass = computed(() => {
     if (currentAction.value === 'grabbing') {
       if (isMouseDown.value || isMouseMiddle.value) {
@@ -230,6 +247,16 @@
     }
 
     return ''
+  })
+
+  watch(() => getGrabbingClass.value, (newVal, oldVal) => {
+    if (oldVal) {
+      elSvgMapWrapper.value.classList.remove(oldVal)
+    }
+
+    if (newVal) {
+      elSvgMapWrapper.value.classList.add(newVal)
+    }
   })
 
   const toggleSeatSelect = id => {
@@ -412,7 +439,9 @@
       }
 
       drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
-      doSelection()
+      // TODO: для оптимизации места не выбираются во время рисования рамки
+      // только после завершения рисования
+      // doSelection()
     }, throttleFrequency)
 
     const mouseUpListener = evt => {
@@ -433,6 +462,7 @@
         StateHistoryManager.saveState(seatsState.value)
       }
 
+      doSelection()
       $selectionFrameRect.setAttribute('visibility', 'hidden')
     }
 
@@ -558,7 +588,9 @@
       endCoordsInArea = getCoordsInSvgMapWrapper(evt)
 
       drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
-      doUnSelection()
+      // TODO: для оптимизации места не выбираются во время рисования рамки
+      // только после завершения рисования
+      // doUnSelection()
     }, throttleFrequency)
 
     const mouseUpListener = evt => {
@@ -837,6 +869,8 @@
     nextTick(centerSvgMap)
   })
 
+  const testRef = ref(null)
+
   onMounted(() => {
     // таймаут для прогрузки свг карты с местами
     setTimeout(() => {
@@ -845,9 +879,19 @@
       unSelectionSeatsFromArea()
       grabbing()
 
+      console.log(testRef)
+      // document.addEventListener('click', evt => {
+      //   console.log('click')
+      //   elSvgMapWrapper.value.classList.add('qwe')
+      // })
+
       StateHistoryManager.saveState(seatsState.value)
     }, 100)
   })
+
+  const logger = (num = 1) => {
+    console.log(num)
+  }
 
   onUnmounted(() => {
     removeGlobalEventListeners()
@@ -861,7 +905,6 @@
       id="elSvgMapWrapper"
       ref="elSvgMapWrapper"
       class="elSvgMapWrapper"
-      :class="getGrabbingClass"
       xmlns="http://www.w3.org/2000/svg"
       width="100%"
       height="100%"
@@ -875,28 +918,26 @@
         <g
           id="elSvgMap"
           ref="elSvgMap"
-          :transform="`translate(${elSvgMapTranslateCoords.x || '0'}, ${elSvgMapTranslateCoords.y || '0'})`"
         >
-          <SchemeSeat
+        <SchemeSeat
             v-for="mapPlace in getSeats"
             :id="mapPlace.id"
             :key="'place-' + mapPlace.id"
             ref="$schemePlaces"
-            :class="{
-              _selected: seatsState.selectedSeats[mapPlace.id] || currentSelectedSeats[mapPlace.id],
-              _disabled: !getQuotaSeats[mapPlace.id],
-              _unselected: currentUnSelectedSeats[mapPlace.id],
-            }"
             data-seat="true"
             :data-id="mapPlace.id"
             :seat="mapPlace"
             :seat-width="props.config.seat_width || 20"
             :seat-height="props.config.seat_height || 20"
-          />
+            :class="{
+              _selected: seatsState.selectedSeats[mapPlace.id] || currentSelectedSeats[mapPlace.id],
+              _disabled: !getQuotaSeats[mapPlace.id],
+              _unselected: currentUnSelectedSeats[mapPlace.id],
+            }"
+            />
         </g>
       </g>
 
-      <!-- рамка - выделение области -->
       <rect
         id="elSelectionFrameRect"
         ref="elSelectionFrameRect"
@@ -907,11 +948,11 @@
         rx="3"
         ry="3"
         visibility="hidden"
-
         stroke-width="1"
         stroke-dasharray="1 4"
         stroke-linecap="round"
-        v-bind="getSelectionRectSettings"
+        fill="rgba(106, 229, 251, 0.34)"
+        stroke="#68aafb"
       />
     </svg>
 
