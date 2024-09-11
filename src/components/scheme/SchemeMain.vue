@@ -119,6 +119,7 @@
     'changedSeatsState',
     'unselectSeats',
     'changeFullscreenMode',
+    'selectSeats',
     // 'clearSelectedSeats',
   ])
 
@@ -127,12 +128,12 @@
     y: 0,
   })
 
-  watch(elSvgMapTranslateCoords, newVal => {
-    if (!newVal) {
+  watch(elSvgMapTranslateCoords, newCoords => {
+    if (!newCoords) {
       return
     }
 
-    elSvgMap.value.setAttribute('transform', `translate(${newVal.x || '0'}, ${newVal.y || '0'})`)
+    elSvgMap.value.setAttribute('transform', `translate(${newCoords.x || '0'}, ${newCoords.y || '0'})`)
   }, { deep: true })
 
   // данные для мест на карте
@@ -435,10 +436,19 @@
         return
       }
 
-      for (const id in currentSelectedSeats.value) {
+      // вызывает ошибку даже на 1000 мест
+      // localhost/:1 Uncaught (in promise) Maximum recursive updates exceeded in component <SchemeMain>. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.
+      // for (const id in currentSelectedSeats.value) {
+      //   seatsState.value.selectedSeats[id] = currentSelectedSeats.value[id]
+      // }
 
-        seatsState.value.selectedSeats[id] = currentSelectedSeats.value[id]
+      // вместо кода выше, меняем реактивное свойство seatsState только 1 раз
+      const tempSeats = {
+        ...seatsState.value.selectedSeats,
+        ...currentSelectedSeats.value,
       }
+
+      seatsState.value.selectedSeats = tempSeats
 
       StateHistoryManager.saveState(seatsState.value)
 
@@ -505,8 +515,20 @@
       $selectionFrameRect.setAttribute('visibility', 'hidden')
     }
 
-    $selectionArea.addEventListener('mousedown', mouseDownListener)
-    $selectionArea.addEventListener('mousemove', mouseMoveListener)
+    let isSelectionAreaListeners = false
+    watch(() => $selectionArea, newVal => {
+      if (!newVal || isSelectionAreaListeners) {
+        return
+      }
+
+      isSelectionAreaListeners = true
+
+      $selectionArea.addEventListener('mousedown', mouseDownListener)
+      $selectionArea.addEventListener('mousemove', mouseMoveListener)
+    }, { immediate: true })
+
+    // $selectionArea.addEventListener('mousedown', mouseDownListener)
+    // $selectionArea.addEventListener('mousemove', mouseMoveListener)
     document.addEventListener('mouseup', mouseUpListener)
   }
 
@@ -589,12 +611,23 @@
         return
       }
 
+      let tempStateSelectedSeats = {
+        ...seatsState.value.selectedSeats,
+      }
+
+      let tempCurrentSelectedSeats = {
+        ...currentSelectedSeats.value,
+      }
+
       for (const id in currentUnSelectedSeats.value) {
         if (currentUnSelectedSeats.value[id]) {
-          delete seatsState.value.selectedSeats[id]
-          delete currentSelectedSeats.value[id]
+          delete tempStateSelectedSeats[id]
+          delete tempCurrentSelectedSeats[id]
         }
       }
+
+      seatsState.value.selectedSeats = tempStateSelectedSeats
+      currentSelectedSeats.value = tempCurrentSelectedSeats
 
       StateHistoryManager.saveState(seatsState.value)
 
@@ -665,8 +698,20 @@
       }
     })
 
-    $selectionArea.addEventListener('mousedown', mouseDownListener)
-    $selectionArea.addEventListener('mousemove', mouseMoveListener)
+    let isSelectionAreaListeners = false
+    watch(() => $selectionArea, newVal => {
+      if (!newVal || isSelectionAreaListeners) {
+        return
+      }
+
+      isSelectionAreaListeners = true
+
+      $selectionArea.addEventListener('mousedown', mouseDownListener)
+      $selectionArea.addEventListener('mousemove', mouseMoveListener)
+    }, { immediate: true })
+
+    // $selectionArea.addEventListener('mousedown', mouseDownListener)
+    // $selectionArea.addEventListener('mousemove', mouseMoveListener)
     document.addEventListener('mouseup', mouseUpListener)
   }
 
@@ -750,6 +795,8 @@
       if (currentAction.value !== 'grabbing') {
         return
       }
+
+      previousTranslateCoords = { ...elSvgMapTranslateCoords.value }
 
       grabStartCoords.x = evt.clientX
       grabStartCoords.y = evt.clientY
