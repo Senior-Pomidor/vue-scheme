@@ -140,7 +140,7 @@
 
   let isSvgMapWrapperListeners = false
   // элемент свг карта
-  const elSvgMapWrapper = ref(null)
+  const elSvgMapWrapper = ref()
   watch(elSvgMapWrapper, newVal => {
     if (!newVal || isSvgMapWrapperListeners) {
       return
@@ -430,6 +430,23 @@
       }
     }
 
+    const confirmSelection = () => {
+      if (!Object.keys(currentSelectedSeats.value).length) {
+        return
+      }
+
+      for (const id in currentSelectedSeats.value) {
+
+        seatsState.value.selectedSeats[id] = currentSelectedSeats.value[id]
+      }
+
+      StateHistoryManager.saveState(seatsState.value)
+
+      emit('selectSeats', currentSelectedSeats.value)
+
+      currentSelectedSeats.value = {}
+    }
+
     const mouseDownListener = evt => {
       if (currentAction.value || !isMouseDown.value) {
         return
@@ -462,8 +479,6 @@
       }
 
       drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
-      // TODO: для оптимизации места не выбираются во время рисования рамки
-      // только после завершения рисования
       // doSelection()
     }, throttleFrequency)
 
@@ -486,6 +501,7 @@
       }
 
       doSelection()
+      confirmSelection()
       $selectionFrameRect.setAttribute('visibility', 'hidden')
     }
 
@@ -617,11 +633,14 @@
     }, throttleFrequency)
 
     const mouseUpListener = evt => {
-      confirmUnselection()
-
-      if (currentAction.value === 'unselection') {
-        currentAction.value = ''
+      if (currentAction.value !== 'unselection') {
+        return
       }
+
+      currentAction.value = ''
+
+      doUnSelection()
+      confirmUnselection()
 
       $selectionFrameRect.setAttribute('visibility', 'hidden')
     }
@@ -894,8 +913,6 @@
     nextTick(centerSvgMap)
   })
 
-  const testRef = ref(null)
-
   onMounted(() => {
     // таймаут для прогрузки свг карты с местами
     setTimeout(() => {
@@ -904,19 +921,9 @@
       unSelectionSeatsFromArea()
       grabbing()
 
-      console.log(testRef)
-      // document.addEventListener('click', evt => {
-      //   console.log('click')
-      //   elSvgMapWrapper.value.classList.add('qwe')
-      // })
-
       StateHistoryManager.saveState(seatsState.value)
     }, 100)
   })
-
-  const logger = (num = 1) => {
-    console.log(num)
-  }
 
   onUnmounted(() => {
     removeGlobalEventListeners()
@@ -944,7 +951,7 @@
           id="elSvgMap"
           ref="elSvgMap"
         >
-        <SchemeSeat
+          <SchemeSeat
             v-for="mapPlace in getSeats"
             :id="mapPlace.id"
             :key="'place-' + mapPlace.id"
@@ -959,10 +966,11 @@
               _disabled: !getQuotaSeats[mapPlace.id],
               _unselected: currentUnSelectedSeats[mapPlace.id],
             }"
-            />
+          />
         </g>
       </g>
 
+      <!-- рамка - выделение области -->
       <rect
         id="elSelectionFrameRect"
         ref="elSelectionFrameRect"
