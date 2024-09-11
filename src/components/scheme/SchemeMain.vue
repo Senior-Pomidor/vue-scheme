@@ -138,8 +138,31 @@
   // данные для мест на карте
   // const mapPlaces = ref([])
 
+  let isSvgMapWrapperListeners = false
   // элемент свг карта
-  const elSvgMapWrapper = ref()
+  const elSvgMapWrapper = ref(null)
+  watch(elSvgMapWrapper, newVal => {
+    if (!newVal || isSvgMapWrapperListeners) {
+      return
+    }
+
+    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
+      if (evt.button === 0) {
+        isMouseDown.value = true
+      }
+    })
+
+    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
+      if (evt.button === 1) {
+        isMouseMiddle.value = true
+      }
+    })
+  }, { immediate: true })
+
+
+
+
+
   // элемент слой-обёртка мест на свг карте
   const elSvgMap = ref()
   // нарисованная область выделения
@@ -745,11 +768,11 @@
   const tooltipParent = ref('')
 
   const openSeatTooltip = seat => {
-    if (!seat.tooltip) {
+    if (!seat?.tooltip?.html) {
       return
     }
 
-    tooltipHtml.value = seat.tooltip?.html || ''
+    tooltipHtml.value = seat.tooltip.html || ''
     tooltipParent.value = `[id="${seat.id}"]`
 
     isTooltip.value = true
@@ -823,17 +846,19 @@
       }
     })
 
-    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
-      if (evt.button === 0) {
-        isMouseDown.value = true
-      }
-    })
+    // перенёс в вотчер, потому что в админке не успевает прогрузиться схема
+    // и лисенер вешается на undefined
+    // elSvgMapWrapper.value.addEventListener('mousedown', evt => {
+    //   if (evt.button === 0) {
+    //     isMouseDown.value = true
+    //   }
+    // })
 
-    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
-      if (evt.button === 1) {
-        isMouseMiddle.value = true
-      }
-    })
+    // elSvgMapWrapper.value.addEventListener('mousedown', evt => {
+    //   if (evt.button === 1) {
+    //     isMouseMiddle.value = true
+    //   }
+    // })
 
     document.addEventListener('mouseup', evt => {
       isMouseDown.value = false
