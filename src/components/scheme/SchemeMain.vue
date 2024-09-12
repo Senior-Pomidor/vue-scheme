@@ -873,7 +873,7 @@
 
     const id = $seat.dataset.id
 
-    if (!id) {
+    if (!id || !getQuotaSeats.value[id]) {
       return
     }
 
@@ -898,7 +898,7 @@
       closeSeatTooltip()
 
       nextTick(() => {
-        openSeatTooltip(getQuotaSeats.value[seatId])
+        openSeatTooltip(getSeats.value[seatId])
       })
     }
   }

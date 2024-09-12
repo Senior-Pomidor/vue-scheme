@@ -3216,7 +3216,7 @@ const MAP_PLACES = {
     x: 250,
     y: 250,
     bg_color: "#999",
-    border_color: "#808080",
+    border_color: ["#7BC62B", "red"],
     tooltip: {
       html: `
         <div class="place-tooltip">

@@ -130,11 +130,18 @@
       fill: var(--fill-color);
     }
 
+    &:not(._disabled) {
+      .hover({
+        rect {
+          fill: var(--fill-color-hover);
+        }
+      })
+    }
+
     .hover({
-      rect {
-        stroke: var(--stroke-color-hover);
-        fill: var(--fill-color-hover);
-      }
-    })
+        rect {
+          stroke: var(--stroke-color-hover);
+        }
+      })
   }
 </style>
