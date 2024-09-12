@@ -91,6 +91,7 @@
   .schemeInfoPopup__btn {
     width: 30px;
     height: 30px;
+    padding: 0;
     border: 1px solid @gray-400;
     border-radius: 4px;
     cursor: pointer;

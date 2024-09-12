@@ -219,11 +219,8 @@
 <style lang="less">
 .tooltip-dynamic {
   position: fixed;
-  width: 300px;
-  height: 100px;
   padding: 10px;
-  border: 1px solid #7ac7b4;
   border-radius: 4px;
-  background-color: #fff ;
+  background-color: #fff;
 }
 </style>
