@@ -41,16 +41,16 @@
           тащить&nbsp;&nbsp;&mdash;
 
           <span class="schemeInfoPopup_key_desc">
-            снятие выделения рамкой
+            перемещение схемы
           </span>
         </p>
 
-        <p class="schemeInfo            Popup__hotkey">
-          <span class="schemeInfoPopup_key">Ctrl / Command</span>&nbsp;&nbsp;+&nbsp;
+        <p class="schemeInfoPopup__hotkey">
+          <span class="schemeInfoPopup_key">Ctrl&nbsp;/&nbsp;Command</span>&nbsp;&nbsp;+&nbsp;
           <span class="schemeInfoPopup_key">ЛКМ</span>&nbsp;&nbsp;+
           тащить&nbsp;&nbsp;&mdash;
           <span class="schemeInfoPopup_key_desc">
-            перемещение схемы
+            снятие выделения рамкой
           </span>
         </p>
 
