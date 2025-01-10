@@ -163,7 +163,6 @@
 
 
 
-
   // элемент слой-обёртка мест на свг карте
   const elSvgMap = ref()
   // нарисованная область выделения
@@ -494,7 +493,7 @@
       }
 
       drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
-      // doSelection()
+      doSelection()
     }, throttleFrequency)
 
     const mouseUpListener = evt => {
@@ -672,7 +671,7 @@
       drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
       // TODO: для оптимизации места не выбираются во время рисования рамки
       // только после завершения рисования
-      // doUnSelection()
+      doUnSelection()
     }, throttleFrequency)
 
     const mouseUpListener = evt => {
@@ -990,10 +989,12 @@
 <template>
   <div class="scheme-main">
     <VLoader v-show="loading" />
+
     <svg
       id="elSvgMapWrapper"
       ref="elSvgMapWrapper"
       class="elSvgMapWrapper"
+      :class="{_select_mode: currentAction === 'selection' || currentAction === 'unselection'}"
       xmlns="http://www.w3.org/2000/svg"
       width="100%"
       height="100%"

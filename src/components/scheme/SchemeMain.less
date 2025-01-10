@@ -97,6 +97,18 @@
   display: flex;
   flex-wrap: wrap;
   cursor: crosshair;
+
+  &:not(._select_mode) {
+    .seat {
+      &._selected {
+        .hover({
+          :deep(rect) {
+            fill: #353ffb;
+          }
+        })
+      }
+    }
+  }
 }
 
 .seat {
@@ -113,12 +125,6 @@
     :deep(rect) {
       fill: #979cf9;
     }
-
-    .hover({
-      :deep(rect) {
-        fill: #353ffb;
-      }
-    })
   }
 
   &._unselected {
