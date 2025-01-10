@@ -129,19 +129,27 @@
       stroke: var(--stroke-color);
       fill: var(--fill-color);
     }
+  }
 
-    &:not(._disabled) {
-      .hover({
-        rect {
-          fill: var(--fill-color-hover);
-        }
-      })
-    }
+</style>
+
+<style lang="less">
+
+.elSvgMapWrapper:not(._select_mode) {
+    .seat {
+      &:not(._disabled) {
+        .hover({
+          rect {
+            fill: var(--fill-color-hover);
+          }
+        })
+      }
 
     .hover({
         rect {
           stroke: var(--stroke-color-hover);
         }
       })
-  }
+    }
+}
 </style>
