@@ -33,7 +33,7 @@
       backgroundColor: schemeConfig.background_color || '#efefef'
     }"
   >
-    <SchemeInfoPopup/>
+    <!-- <SchemeInfoPopup/> -->
 
     <SchemeMain
       class="schemeAdminView__scheme"

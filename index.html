@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vue Hall Scheme App ksadlkasdlk</title>
 
+    <!-- <link rel="stylesheet" href="/dist/style.css"> -->
+
     <style>
       #vue_hall_scheme_app {
         width: 1440px;
@@ -29,6 +31,7 @@
     <div class="buttons">
       <button id="fetchSelectionBtn">fetch places 1k</button>
       <button id="fetchSelectionBtn7K">fetch places 7k</button>
+      <button id="fetchSelectionBtn45k">fetch places 45k</button>
       <button id="confirmSelectionBtn">confirm selection</button>
       <!-- <button id="clearSelectedSeatsBtn">clear selection</button> -->
     </div>
@@ -37,15 +40,21 @@
     <section id="vue_hall_scheme_app_2"></section>
 
     <script type="module" src="/src/main.js"></script>
+    <!-- <script type="module" src="/dist/vue_hall_scheme_view.js"></script> -->
     <script type="module">
       import { VueHallSchemeView } from './src/main.js'
+      // import { VueHallSchemeView } from '/dist/vue_hall_scheme_view.js'
 
       import { MAP_PLACES, MAP_PLACES_7K } from './map.js'
+      import { MAP_PLACES_45K } from './map_45k.js'
+
       const places = MAP_PLACES
       const places_7k = MAP_PLACES_7K
+      const places_45k = MAP_PLACES_45K
 
       const fetchSelectionBtn = document.getElementById('fetchSelectionBtn')
       const fetchSelectionBtn7K = document.getElementById('fetchSelectionBtn7K')
+      const fetchSelectionBtn45K = document.getElementById('fetchSelectionBtn45k')
       const confirmSelectionBtn = document.getElementById('confirmSelectionBtn')
       // const clearSelectedSeatsBtn = document.getElementById('clearSelectedSeatsBtn')
 
@@ -60,43 +69,47 @@
         vueHallSchemeApp.setSchemeSeatsToApp(places_7k)
       }
 
-      // фильтр выделения мест
-      vueHallSchemeApp.setSelectionFilters({
-        attrs: {
-          // x: 25,
-          status: ['available'],
-          sell_channels: {
-            // is_widget: false, // виджет
-            // is_api: true, // шлюзы
-            // is_cashbox: true, // касса
-          },
+      fetchSelectionBtn45k.onclick = () => {
+        vueHallSchemeApp.setSchemeSeatsToApp(places_45k)
+      }
 
-        }
-      })
+      // фильтр выделения мест
+      // vueHallSchemeApp.setSelectionFilters({
+      //   attrs: {
+      //     // x: 25,
+      //     status: ['available'],
+      //     sell_channels: {
+      //       // is_widget: false, // виджет
+      //       // is_api: true, // шлюзы
+      //       // is_cashbox: true, // касса
+      //     },
+
+      //   }
+      // })
 
       // clearSelectedSeatsBtn.onclick = () => {
       //   vueHallSchemeApp.clearSelectedSeats()
       // }
 
-      confirmSelectionBtn.onclick = () => {
-        const placesIds = vueHallSchemeApp.getSelectedSeats()
+      // confirmSelectionBtn.onclick = () => {
+      //   const placesIds = vueHallSchemeApp.getSelectedSeats()
 
-        // HACK: имитация бэка
-        // вместо этого нужно обновить места на бэке,
-        // и получить новые места
-        for (let id in placesIds) {
-          places[id].border_color = 'none'
-          // places[id].status = 'available'
-          places[id].reserved_by_user = true
-          places[id].bg_color = 'red'
-        }
+      //   // HACK: имитация бэка
+      //   // вместо этого нужно обновить места на бэке,
+      //   // и получить новые места
+      //   for (let id in placesIds) {
+      //     places[id].border_color = 'none'
+      //     // places[id].status = 'available'
+      //     places[id].reserved_by_user = true
+      //     places[id].bg_color = 'red'
+      //   }
 
-        const newPlaces = structuredClone(places)
-        // HACK: имитация бэка
+      //   const newPlaces = structuredClone(places)
+      //   // HACK: имитация бэка
 
-        // прокидываем обновлённые места в схему
-        vueHallSchemeApp.setSchemeSeatsToApp(newPlaces)
-      }
+      //   // прокидываем обновлённые места в схему
+      //   vueHallSchemeApp.setSchemeSeatsToApp(newPlaces)
+      // }
     </script>
   </body>
 </html>

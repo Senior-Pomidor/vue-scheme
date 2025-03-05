@@ -5,8 +5,8 @@
     class="seat"
   >
     <rect
-      :width="props.seatWidth + 2"
-      :height="props.seatHeight + 2"
+      :width="getSeatSize.width"
+      :height="getSeatSize.height"
       :x="props.seat.x"
       :y="props.seat.y"
       rx="3"
@@ -14,142 +14,166 @@
       :stroke-width="2"
       :style="getStyles"
     >
-  </rect>
-
+    </rect>
+    <!-- XXX: оставляем 2 text -->
     <text
+      v-if="seat.row"
       class="seat__text"
       color="black"
-      :transform="`translate(${props.seat.x || 0} ${props.seat.y || 0})`"
+      :x="getTextCoords.row.x"
+      :y="getTextCoords.row.y"
     >
       <tspan
-        v-if="seat.seat"
-        :x="seatWidth - 1"
-        :y="seatHeight - 9"
-        text-anchor="end"
-        class="seat__seat"
-      >
-        {{ seat.seat }}
-      </tspan>
-      <tspan
-        v-if="seat.row"
-        :x="2"
-        :y="seatHeight - 2"
         text-anchor="start"
         class="seat__row"
       >
         {{ seat.row }}
       </tspan>
     </text>
+
+    <text
+      v-if="seat.seat"
+      class="seat__text"
+      color="black"
+      :x="getTextCoords.seat.x"
+      :y="getTextCoords.seat.y"
+    >
+      <tspan
+        text-anchor="end"
+        class="seat__seat"
+      >
+        {{ seat.seat }}
+      </tspan>
+    </text>
   </g>
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
+// markRaw
+const props = defineProps({
+  seat: {
+    type: Object,
+    default: () => ({}),
+  },
 
-  const props = defineProps({
+  seatWidth: {
+    type: [Number, String],
+    default: 20,
+  },
+
+  seatHeight: {
+    type: [Number, String],
+    default: 20,
+  },
+
+  // условие для выделения места
+  // selectable: {
+  //   type: Boolean,
+  //   default: false,
+  // },
+
+  // stateStatus: {
+  //   type: String,
+  //   default: '',
+  // },
+});
+
+const getSeatSize = computed(() => {
+  return {
+    width: props.seatWidth + 2,
+    height: props.seatHeight + 2,
+  }
+})
+
+const getTextCoords = computed(() => {
+  return {
+    row: {
+      x: props.seat.x + 2,
+      y: props.seat.y + props.seatWidth - 1,
+    },
+
     seat: {
-      type: Object,
-      default: () => ({}),
+      x: props.seat.x + props.seatWidth,
+      y: props.seat.y + 12,
     },
+  }
+})
 
-    seatWidth: {
-      type: [Number, String],
-      default: 20,
-    },
+const getStyles = computed(() => {
+  const styles = {};
 
-    seatHeight: {
-      type: [Number, String],
-      default: 20,
-    },
+  if (Array.isArray(props.seat.border_color)) {
+    styles["--stroke-color"] = props.seat.border_color[0];
+    styles["--stroke-color-hover"] = props.seat.border_color[1] || props.seat.border_color[0] || "";
+  } else {
+    styles["--stroke-color"] = props.seat.border_color || "";
+  }
 
-    // условие для выделения места
-    // selectable: {
-    //   type: Boolean,
-    //   default: false,
-    // },
+  if (Array.isArray(props.seat.bg_color)) {
+    styles["--fill-color"] = props.seat.bg_color[0];
+    styles["--fill-color-hover"] = props.seat.bg_color[1] || props.seat.bg_color[0] || "";
+  } else {
+    styles["--fill-color"] = props.seat.bg_color || "";
+  }
 
-    // stateStatus: {
-    //   type: String,
-    //   default: '',
-    // },
-  })
+  return styles;
+});
 
-  const getStyles = computed(() => {
-    const styles = {}
+const $el = ref(null);
 
-    if (Array.isArray(props.seat.border_color)) {
-      styles['--stroke-color'] = props.seat.border_color[0]
-      styles['--stroke-color-hover'] = props.seat.border_color[1] || props.seat.border_color[0] || ''
-    } else {
-      styles['--stroke-color'] = props.seat.border_color || ''
-    }
-
-    if (Array.isArray(props.seat.bg_color)) {
-      styles['--fill-color'] = props.seat.bg_color[0]
-      styles['--fill-color-hover'] = props.seat.bg_color[1] || props.seat.bg_color[0] || ''
-    } else {
-      styles['--fill-color'] = props.seat.bg_color || ''
-    }
-
-    return styles
-  })
-
-  const $el = ref(null)
-
-  // для явного возврата нужного элемента
-  defineExpose({
-    $el,
-  })
+// для явного возврата нужного элемента
+defineExpose({
+  $el,
+});
 </script>
 
 <style lang="less" scoped>
-  .seat {
-    --fill-color: #999;
-    --fill-color-hover: #353ffb;
+.seat {
+  --fill-color: #999;
+  --fill-color-hover: #353ffb;
 
-    --stroke-color: #808080;
-    --stroke-color-hover: #808080;
+  --stroke-color: #808080;
+  --stroke-color-hover: #808080;
 
-    cursor: pointer;
+  // cursor: pointer;
 
-    &__text {
-      pointer-events: none;
-    }
-
-    &__row {
-      font-size: 8px;
-    }
-
-    &__seat {
-      font-size: 12px;
-    }
-
-
-    rect {
-      stroke: var(--stroke-color);
-      fill: var(--fill-color);
-    }
+  &__text {
+    pointer-events: none;
   }
 
+  &__row {
+    font-size: 8px;
+  }
+
+  &__seat {
+    font-size: 12px;
+    top: 15px;
+  }
+
+  rect {
+    stroke: var(--stroke-color);
+    fill: var(--fill-color);
+  }
+}
 </style>
 
 <style lang="less">
-
 .elSvgMapWrapper:not(._select_mode) {
-    .seat {
-      &:not(._disabled) {
-        .hover({
-          rect {
-            fill: var(--fill-color-hover);
-          }
-        })
-      }
+  // .seat {
+  //   &:not(._disabled) {
+  //     .hover({
+  //       rect {
+  //         fill: var(--fill-color-hover);
+  //       }
+  //     })
+  //   }
 
-    .hover({
-        rect {
-          stroke: var(--stroke-color-hover);
-        }
-      })
-    }
+  // .hover({
+  //     rect {
+  //       stroke: var(--stroke-color-hover);
+  //     }
+  //   })
+  // }
 }
 </style>
