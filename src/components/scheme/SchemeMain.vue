@@ -230,6 +230,14 @@
   // }
 
   watch(() => getSeats.value, newVal => {
+    // Удаляем класс _selected у всех выбранных мест
+    // for (const id in seatsState.value.selectedSeats) {
+    //   const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+    //   if (seatElement) {
+    //     seatElement.classList.remove('_selected')
+    //   }
+    // }
+
     currentSelectedSeats.value = {}
     seatsState.value.selectedSeats = {}
 
@@ -289,12 +297,22 @@
   })
 
   const toggleSeatSelect = id => {
+    const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+
     if (seatsState.value.selectedSeats[id] || currentSelectedSeats.value[id]) {
       delete currentSelectedSeats.value[id]
       delete seatsState.value.selectedSeats[id]
+
+      if (seatElement) {
+        seatElement.classList.remove('_selected')
+      }
     } else {
       currentSelectedSeats.value[id] = getQuotaSeats.value[id]
       seatsState.value.selectedSeats[id] = getQuotaSeats.value[id]
+
+      if (seatElement) {
+        seatElement.classList.add('_selected')
+      }
     }
 
     currentSelectedSeats.value = {}
@@ -421,8 +439,11 @@
         // которые были выделены в последней области
         // и в итоге не попали в неё
         if (!isItemInSelectionArea) {
-          delete currentSelectedSeats.value[$item.id]
-
+          if (currentSelectedSeats.value[$item.id]) {
+            delete currentSelectedSeats.value[$item.id]
+            // Удаляем класс _selected, если место было в currentSelectedSeats, но вышло из области выделения
+            $item.classList.remove('_selected')
+          }
           continue
         }
 
@@ -438,6 +459,8 @@
         }
 
         currentSelectedSeats.value[$item.id] = getQuotaSeats.value[$item.id]
+        // Добавляем класс _selected при выделении
+        $item.classList.add('_selected')
       }
     }
 
@@ -610,6 +633,10 @@
         if (!isItemInSelectionArea) {
           if (currentUnSelectedSeats.value[$item.id]) {
             delete currentUnSelectedSeats.value[$item.id]
+            // Возвращаем класс _selected, если место было в currentUnSelectedSeats, но вышло из области снятия выделения
+            if (seatsState.value.selectedSeats[$item.id]) {
+              $item.classList.add('_selected')
+            }
           }
 
           continue
@@ -617,6 +644,8 @@
 
         if (seatsState.value.selectedSeats[$item.id]) {
           currentUnSelectedSeats.value[$item.id] = getQuotaSeats.value[$item.id]
+          // Удаляем класс _selected при добавлении в список мест для снятия выделения
+          $item.classList.remove('_selected')
         }
       }
     }
@@ -638,6 +667,12 @@
         if (currentUnSelectedSeats.value[id]) {
           delete tempStateSelectedSeats[id]
           delete tempCurrentSelectedSeats[id]
+
+          // Удаляем класс _selected при отмене выделения
+          const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+          if (seatElement) {
+            seatElement.classList.remove('_selected')
+          }
         }
       }
 
@@ -931,6 +966,14 @@
   const hallSchemeApp = inject('hallSchemeApp')
 
   hallSchemeApp.on(hallSchemeApp.events['clearSelectedSeats'], () => {
+    // Удаляем класс _selected у всех выбранных мест
+    for (const id in seatsState.value.selectedSeats) {
+      const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+      if (seatElement) {
+        seatElement.classList.remove('_selected')
+      }
+    }
+
     seatsState.value.selectedSeats = {}
     StateHistoryManager.clearState()
   })
@@ -953,6 +996,16 @@
       selectionSeatsFromArea()
       unSelectionSeatsFromArea()
       grabbing()
+
+      // Устанавливаем класс _selected для всех уже выбранных мест
+      nextTick(() => {
+        for (const id in seatsState.value.selectedSeats) {
+          const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+          if (seatElement) {
+            seatElement.classList.add('_selected')
+          }
+        }
+      })
 
       StateHistoryManager.saveState(seatsState.value)
     }, 100)
@@ -1003,6 +1056,10 @@
             :seat="mapPlace"
             :seat-width="props.config.seat_width || 20"
             :seat-height="props.config.seat_height || 20"
+            :class="{
+              _disabled: !getQuotaSeats[mapPlace.id],
+              _unselected: currentUnSelectedSeats[mapPlace.id],
+            }"
           />
 
           <!-- :class="{
