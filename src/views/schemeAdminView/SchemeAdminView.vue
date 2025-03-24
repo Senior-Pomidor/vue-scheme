@@ -14,6 +14,7 @@
   ])
 
   const schemeSeats = inject('schemeSeats')
+  const schemeSeatsChunk = inject('schemeSeatsChunk')
   const schemeConfig = inject('schemeConfig')
   const selectionFilters = inject('selectionFilters')
 
@@ -38,6 +39,7 @@
     <SchemeMain
       class="schemeAdminView__scheme"
       :seats="schemeSeats"
+      :seats-chunk="schemeSeatsChunk"
       :config="schemeConfig"
       :filters="selectionFilters"
       @changed-seats-state="changedSeatsStateHandler"

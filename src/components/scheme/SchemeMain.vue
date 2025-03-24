@@ -21,8 +21,13 @@
     },
 
     seats: {
-      type: [Array, Object],
-      default: () => [],
+      type: Object,
+      default: () => ({}),
+    },
+
+    seatsChunk: {
+      type: Object,
+      default: () => ({}),
     },
 
     filters: {
@@ -45,15 +50,35 @@
 
   // места на схеме
   const $schemePlaces = ref([])
-  const getSeats = computed(() => props.seats)
 
-  // const checkCond = seat => seat.active == true
+  // локальная копия мест
+  const localSeats = ref({})
+
+  const getSeatsProps = computed(() => props.seats)
+
+  // наблюдение за обновлением всех мест
+  watch(() => props.seats, (newSeats) => {
+    localSeats.value = { ...newSeats }
+  }, { deep: true, immediate: true })
+
+  // наблюдение за обновлением частичных мест
+  watch(() => props.seatsChunk, (newSeatsChunk) => {
+    if (!Object.keys(newSeatsChunk).length) return
+
+    // обновляем только указанные места с учетом фильтрации
+    localSeats.value = {
+      ...localSeats.value,
+      ...newSeatsChunk
+    }
+  }, { deep: true })
+
+  const getSeats = computed(() => localSeats.value)
 
   const getQuotaSeats = computed(() => {
     const seats = {}
 
-    for (const id in props.seats) {
-      const seat = props.seats[id]
+    for (const id in localSeats.value) {
+      const seat = localSeats.value[id]
       let isValid = true
 
 

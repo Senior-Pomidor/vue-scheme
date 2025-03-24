@@ -68,17 +68,21 @@
 
       const vueHallSchemeApp = new VueHallSchemeView('#vue_hall_scheme_app')
 
+      let newPlaces = {}
 
       fetchSelectionBtn.onclick = () => {
-        vueHallSchemeApp.setSchemeSeatsToApp(places)
+        newPlaces = structuredClone(places)
+        vueHallSchemeApp.setSchemeSeatsToApp(newPlaces)
       }
 
       fetchSelectionBtn7K.onclick = () => {
-        vueHallSchemeApp.setSchemeSeatsToApp(places_7k)
+        newPlaces = structuredClone(places_7k)
+        vueHallSchemeApp.setSchemeSeatsToApp(newPlaces)
       }
 
       fetchSelectionBtn45k.onclick = () => {
-        vueHallSchemeApp.setSchemeSeatsToApp(places_45k)
+        newPlaces = structuredClone(places_45k)
+        vueHallSchemeApp.setSchemeSeatsToApp(newPlaces)
       }
 
       // фильтр выделения мест
@@ -106,13 +110,13 @@
         // вместо этого нужно обновить места на бэке,
         // и получить новые места
         for (let id in placesIds) {
-          places[id].border_color = 'none'
-          places[id].status = 'closed'
-          places[id].reserved_by_user = true
-          places[id].bg_color = 'red'
+          newPlaces[id].border_color = 'none'
+          newPlaces[id].status = 'closed'
+          newPlaces[id].reserved_by_user = true
+          newPlaces[id].bg_color = 'red'
         }
 
-        const newPlaces = structuredClone(places)
+        // const newPlacesChunk = structuredClone(places)
         // HACK: имитация бэка
 
         // прокидываем обновлённые места в схему

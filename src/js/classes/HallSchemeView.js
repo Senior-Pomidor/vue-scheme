@@ -72,16 +72,20 @@ class HallSchemeView {
   }
 
   setSchemeSeatsToApp(seats) {
+    const seatsClone = structuredClone(seats)
+
     const event = new CustomEvent(this.events.setSchemeSeatsToApp, {
-      detail: { seats },
+      detail: { seats: seatsClone },
     })
 
     this.#rootElement.dispatchEvent(event)
   }
 
   updateSeatsChunk(seats) {
+    const seatsClone = structuredClone(seats)
+
     const event = new CustomEvent(this.events.updateSeatsChunk, {
-      detail: { seats },
+      detail: { seats: seatsClone },
     })
 
     this.#rootElement.dispatchEvent(event)

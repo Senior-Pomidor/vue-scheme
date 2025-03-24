@@ -7,12 +7,14 @@
   const schemeConfig = ref({})
 
   // места
-  const schemeSeats = ref([])
+  const schemeSeats = ref({})
+  const schemeSeatsChunk = ref({})
   const selectedSeats = ref({})
   const selectionFilters = ref({})
 
 
   provide('schemeSeats', schemeSeats)
+  provide('schemeSeatsChunk', schemeSeatsChunk)
   provide('schemeConfig', schemeConfig)
   provide('selectionFilters', selectionFilters)
 
@@ -26,9 +28,11 @@
   })
 
   hallSchemeApp.on(events.updateSeatsChunk, ({ detail }) => {
-    for (const id in detail.seats) {
-      schemeSeats.value[id] = detail.seats[id]
-    }
+    // for (const id in detail.seats) {
+    //   schemeSeats.value[id] = detail.seats[id]
+    // }
+
+    schemeSeatsChunk.value = detail.seats || {}
   })
 
   hallSchemeApp.on(events.setSelectionFilters, ({ detail }) => {
