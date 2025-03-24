@@ -204,6 +204,31 @@
     undoLastAction,
   } = useUndoRedo(seatsState)
 
+  // Наблюдаем за изменениями выбранных мест и обновляем классы элементов
+  watch(() => seatsState.value.selectedSeats, (newSelectedSeats, oldSelectedSeats) => {
+    // Находим места, которые были выделены, но сейчас отменены
+    for (const id in oldSelectedSeats) {
+      if (!newSelectedSeats[id]) {
+        // Удаляем класс _selected у мест, которые более не выделены
+        const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+        if (seatElement) {
+          seatElement.classList.remove('_selected')
+        }
+      }
+    }
+
+    // Находим новые выделенные места
+    for (const id in newSelectedSeats) {
+      if (!oldSelectedSeats[id]) {
+        // Добавляем класс _selected новым выделенным местам
+        const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+        if (seatElement) {
+          seatElement.classList.add('_selected')
+        }
+      }
+    }
+  }, { deep: true })
+
   // настройки
   const isShiftKey = ref(false)
   const isSpaceKey = ref(false)
