@@ -47,58 +47,50 @@
   const $schemePlaces = ref([])
   const getSeats = computed(() => props.seats)
 
-  // const checkCond = seat => seat.active == true
+  // фильтрация мест
+  const filterSeats = (allSeats, filters) => {
+    const result = {}
 
-  const getQuotaSeats = computed(() => {
-    const seats = {}
-
-    for (const id in props.seats) {
-      const seat = props.seats[id]
+    for (const id in allSeats) {
+      const seat = allSeats[id]
       let isValid = true
 
-
-      if (!Object.keys(props.filters).length) {
-        seats[id] = seat
+      if (!Object.keys(filters).length) {
+        result[id] = seat
         continue
       }
 
       // HACK: временное решение для фильтров выделения
       // FIXME: переписать этот говнокод при первой же возможности
-      for (const filter in props.filters) {
+      for (const filter in filters) {
         switch (filter) {
           case 'attrs':
-            for (const attr in props.filters.attrs) {
-              if (Array.isArray(props.filters.attrs[attr])) {
-                if (props.filters.attrs[attr].length && !props.filters.attrs[attr].includes(seat[attr])) {
+            for (const attr in filters.attrs) {
+              if (Array.isArray(filters.attrs[attr])) {
+                if (filters.attrs[attr].length && !filters.attrs[attr].includes(seat[attr])) {
                   isValid = false
-
                   break
                 }
-              } else if (typeof props.filters.attrs[attr] === 'object') {
-                for (const key in props.filters.attrs[attr]) {
-
+              } else if (typeof filters.attrs[attr] === 'object') {
+                for (const key in filters.attrs[attr]) {
                   // есть хоть один true вариант
-                  if (JSON.stringify(props.filters.attrs[attr][key]) === JSON.stringify(seat[attr][key])) {
+                  if (JSON.stringify(filters.attrs[attr][key]) === JSON.stringify(seat[attr][key])) {
                     isValid = true
-
                     break
                   }
-
                   isValid = false
                 }
-              } else if (JSON.stringify(props.filters.attrs[attr]) !== JSON.stringify(seat[attr])) {
+              } else if (JSON.stringify(filters.attrs[attr]) !== JSON.stringify(seat[attr])) {
                 isValid = false
-
                 break
               }
             }
             break
 
           case 'prices':
-            if (props.filters.prices.min && seat.price < props.filters.prices.min
-              || props.filters.prices.max && seat.price > props.filters.prices.max) {
+            if (filters.prices.min && seat.price < filters.prices.min
+              || filters.prices.max && seat.price > filters.prices.max) {
               isValid = false
-
               break
             }
             break
@@ -108,11 +100,16 @@
       }
 
       if (isValid) {
-        seats[id] = seat
+        result[id] = seat
       }
     }
 
-    return seats
+    return result
+  }
+
+  // Computed для получения отфильтрованных мест
+  const getQuotaSeats = computed(() => {
+    return filterSeats(props.seats, props.filters)
   })
 
   const emit = defineEmits([
@@ -531,7 +528,7 @@
       }
 
       drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
-      doSelection()
+      // doSelection()
     }, throttleFrequency)
 
     const mouseUpListener = evt => {
@@ -1185,3 +1182,4 @@
     })
   }
 </style>
+
