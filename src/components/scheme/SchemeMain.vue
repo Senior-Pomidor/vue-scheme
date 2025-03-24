@@ -864,22 +864,13 @@
     emit('changeFullscreenMode')
   }
 
-  const centerSvgMap = () => {
-    elSvgMapTranslateCoords.value.x = elSvgMapWrapper.value.getBoundingClientRect().width / 2
-      - elSvgMap.value.getBBox().width / 2
-
-    elSvgMapTranslateCoords.value.y = elSvgMapWrapper.value.getBoundingClientRect().height / 2
-      - elSvgMap.value.getBBox().height / 2
-  }
-  // END: zoom
-
   const elActionLayer = ref()
+  const lastMapTranslateCoords = { x: 0, y: 0 }
 
   const grabbing = () => {
     const targetEl = document.querySelector('#elSvgMap')
     let isDragging = false
     let offsetX, offsetY
-    let currentX = 0, currentY = 0
 
     // отображение/скрытие action_layer
     watch(isModeGrabbing, (newVal) => {
@@ -905,19 +896,18 @@
         if (!isModeGrabbing.value) return
 
         isDragging = true
-        const rect = targetEl.getBoundingClientRect()
-        offsetX = e.clientX - rect.left
-        offsetY = e.clientY - rect.top
+        offsetX = e.clientX - lastMapTranslateCoords.x
+        offsetY = e.clientY - lastMapTranslateCoords.y
       })
 
       actionLayer.addEventListener('mousemove', (e) => {
         if (!isDragging || !isModeGrabbing.value) return
 
-        currentX = e.clientX - offsetX
-        currentY = e.clientY - offsetY
+        lastMapTranslateCoords.x = e.clientX - offsetX
+        lastMapTranslateCoords.y = e.clientY - offsetY
 
         requestAnimationFrame(() => {
-          targetEl.style.transform = `translate(${currentX}px, ${currentY}px)`
+          targetEl.style.transform = `translate(${lastMapTranslateCoords.x}px, ${lastMapTranslateCoords.y}px)`
         })
       })
 
@@ -1077,6 +1067,21 @@
     isFirstRender.value = false
     nextTick(centerSvgMap)
   })
+
+  const centerSvgMap = () => {
+    const x = elSvgMapWrapper.value.getBoundingClientRect().width / 2
+      - elSvgMap.value.getBBox().width / 2
+
+    const y = elSvgMapWrapper.value.getBoundingClientRect().height / 2
+      - elSvgMap.value.getBBox().height / 2
+
+    elSvgMapTranslateCoords.value.x = x
+    elSvgMapTranslateCoords.value.y = y
+
+    // Обновляем последние координаты после центрирования
+    lastMapTranslateCoords.x = x
+    lastMapTranslateCoords.y = y
+  }
 
   onMounted(() => {
     // таймаут для прогрузки свг карты с местами
