@@ -230,7 +230,7 @@
   // }
 
   watch(() => getSeats.value, newVal => {
-    // Удаляем класс _selected у всех выбранных мест
+    // ??? Удаляем класс _selected у всех выбранных мест
     // for (const id in seatsState.value.selectedSeats) {
     //   const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
     //   if (seatElement) {
@@ -238,8 +238,17 @@
     //   }
     // }
 
-    currentSelectedSeats.value = {}
+    // ??? Удаляем класс _unselected у всех мест с отменой выделения
+    // for (const id in currentUnSelectedSeats.value) {
+    //   const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+    //   if (seatElement) {
+    //     seatElement.classList.remove('_unselected')
+    //   }
+    // }
+
+    // currentSelectedSeats.value = {} ???
     seatsState.value.selectedSeats = {}
+    // currentUnSelectedSeats.value = {} ???
 
     StateHistoryManager.clearState()
     StateHistoryManager.saveState(seatsState.value)
@@ -637,6 +646,8 @@
             if (seatsState.value.selectedSeats[$item.id]) {
               $item.classList.add('_selected')
             }
+            // Удаляем класс _unselected, если место вышло из области снятия выделения
+            $item.classList.remove('_unselected')
           }
 
           continue
@@ -646,6 +657,8 @@
           currentUnSelectedSeats.value[$item.id] = getQuotaSeats.value[$item.id]
           // Удаляем класс _selected при добавлении в список мест для снятия выделения
           $item.classList.remove('_selected')
+          // Добавляем класс _unselected
+          $item.classList.add('_unselected')
         }
       }
     }
@@ -672,6 +685,8 @@
           const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
           if (seatElement) {
             seatElement.classList.remove('_selected')
+            // Удаляем класс _unselected после завершения операции отмены выделения
+            seatElement.classList.remove('_unselected')
           }
         }
       }
@@ -724,6 +739,12 @@
 
       doUnSelection()
       confirmUnselection()
+
+      // ??? Убедимся, что все классы _unselected удалены после завершения операции
+      for (let $item of $schemePlaces.value) {
+        $item = $item.$el || $item
+        $item.classList.remove('_unselected')
+      }
 
       $selectionFrameRect.setAttribute('visibility', 'hidden')
     }
@@ -974,7 +995,16 @@
       }
     }
 
+    // Удаляем класс _unselected у всех мест с отменой выделения
+    for (const id in currentUnSelectedSeats.value) {
+      const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+      if (seatElement) {
+        seatElement.classList.remove('_unselected')
+      }
+    }
+
     seatsState.value.selectedSeats = {}
+    currentUnSelectedSeats.value = {}
     StateHistoryManager.clearState()
   })
   // FIXME: END: костыль для очистки выделения
@@ -1058,7 +1088,6 @@
             :seat-height="props.config.seat_height || 20"
             :class="{
               _disabled: !getQuotaSeats[mapPlace.id],
-              _unselected: currentUnSelectedSeats[mapPlace.id],
             }"
           />
 
