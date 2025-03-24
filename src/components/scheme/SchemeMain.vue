@@ -871,10 +871,6 @@
     const targetEl = document.querySelector('#elSvgMap')
     let isDragging = false
     let offsetX, offsetY
-<<<<<<< Updated upstream
-=======
-    let lastX = 0, lastY = 0
->>>>>>> Stashed changes
 
     // отображение/скрытие action_layer
     watch(isModeGrabbing, (newVal) => {
@@ -900,35 +896,18 @@
         if (!isModeGrabbing.value) return
 
         isDragging = true
-<<<<<<< Updated upstream
         offsetX = e.clientX - lastMapTranslateCoords.x
         offsetY = e.clientY - lastMapTranslateCoords.y
-=======
-        const transform = window.getComputedStyle(targetEl).transform
-        const matrix = new DOMMatrix(transform)
-
-        // Используем текущее положение схемы для расчета смещения
-        offsetX = e.clientX - matrix.m41
-        offsetY = e.clientY - matrix.m42
->>>>>>> Stashed changes
       })
 
       actionLayer.addEventListener('mousemove', (e) => {
         if (!isDragging || !isModeGrabbing.value) return
 
-<<<<<<< Updated upstream
         lastMapTranslateCoords.x = e.clientX - offsetX
         lastMapTranslateCoords.y = e.clientY - offsetY
 
         requestAnimationFrame(() => {
           targetEl.style.transform = `translate(${lastMapTranslateCoords.x}px, ${lastMapTranslateCoords.y}px)`
-=======
-        lastX = e.clientX - offsetX
-        lastY = e.clientY - offsetY
-
-        requestAnimationFrame(() => {
-          targetEl.style.transform = `translate(${lastX}px, ${lastY}px)`
->>>>>>> Stashed changes
         })
       })
 
