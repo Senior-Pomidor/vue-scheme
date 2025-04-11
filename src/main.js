@@ -6,7 +6,7 @@ import './style.css'
 import { HallSchemeView } from '@/js/classes/HallSchemeView'
 
 // global styles
-// import '@/assets/less/vendors.less'
+import '@/assets/less/vendors.less'
 import '@/assets/less/bundle.less'
 import '@/assets/less/main.less'
 
