@@ -54,6 +54,11 @@
   // локальная копия мест
   const localSeats = ref({})
 
+  // состояние мест на карте
+  const seatsState = ref({
+    selectedSeats: {},
+  })
+
   // локальное хранилище отфильтрованных мест
   const filteredSeats = ref({})
 
@@ -72,6 +77,11 @@
                 return false
               }
             } else if (typeof props.filters.attrs[attr] === 'object') {
+              // Если пустой объект, то не фильтруем по нему, иначе все места будут false
+              if (!Object.keys(props.filters.attrs[attr] || {}).length) {
+                return true
+              }
+
               let hasValidOption = false
               for (const key in props.filters.attrs[attr]) {
                 if (JSON.stringify(props.filters.attrs[attr][key]) === JSON.stringify(seat[attr][key])) {
@@ -108,6 +118,18 @@
         filteredSeats.value[id] = localSeats.value[id]
       }
     }
+
+    // FIXME: костыль, оптимизировать
+    // чтобы не слетало выделение мест при смене филтьтров
+    nextTick(() => {
+      for (const id in seatsState.value.selectedSeats) {
+        const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
+
+          if (seatElement) {
+            seatElement.classList.add('_selected')
+          }
+      }
+    })
   }
 
   // фильтрация только измененных мест
@@ -213,11 +235,6 @@
   const currentUnSelectedSeats = ref({})
 
   const openedSeats = ref({})
-
-  // состояние мест на карте
-  const seatsState = ref({
-    selectedSeats: {},
-  })
 
   // возвращает формат идентичный seatsState
   const getSeatsState = computed(() => {
@@ -450,7 +467,6 @@
     // выделение элементов, пересекающихся с рамкой-выделением
     // проверяются координаты относительно окна браузера
     const doSelection = () => {
-      // console.log(213)
       if (!$schemePlaces.value) {
         return
       }
