@@ -1213,11 +1213,15 @@
     width: 100%;
     height: 100%;
     z-index: 10;
-    transform: translate3d(-100%, -100%, 0);
+    transform: translate3d(0, 0, 0);
+    visibility: hidden;
+    pointer-events: none;
     // background-color: rgba(255, 255, 255, .3);
 
     &._visible {
-      transform: translate3d(0, 0, 0);
+      visibility: visible;
+      pointer-events: all;
+      // transform: translate3d(0, 0, 0);
     }
 
     &._grab {
