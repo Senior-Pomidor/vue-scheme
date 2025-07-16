@@ -1,54 +1,12 @@
 
-.scheme-main {
+.scheme_main {
   position: relative;
-  // overflow: auto;
-  // height: 68vh;
-  // border: 2px solid #15b881;
-  // padding: 4px;
-  // border-radius: 4px;
 
   &__controls {
-
     position: absolute;
     top: 50%;
     right: 1rem;
     transform: translateY(-50%);
-
-    // button {
-    //   display: inline-flex;
-    //   align-items: center;
-    //   justify-content: center;
-    //   width: 40px;
-    //   height: 40px;
-    //   padding: 0;
-    //   border-radius: 6px;
-    //   background-color: #f4f7fb;
-    //   font-size: 20px;
-    //   box-shadow: @btn_deep @btn_deep @blue-light;
-    //   user-select: none;
-    //   transition:
-    //     transform .2s ease,
-    //     box-shadow .2s ease;
-
-    //   + button {
-    //     margin-top: .5rem;
-    //   }
-
-    //   &:active,
-    //   &:focus {
-    //     outline: none;
-    //   }
-
-    //   .hover({
-    //     border: none;
-    //     transform: translate(@btn_deep, @btn_deep);
-    //     box-shadow: 0px 0px @blue-light;
-    //   })
-    // }
-  }
-
-  :deep(.tooltip-dynamic) {
-    margin-top: 10px;
   }
 }
 
@@ -93,72 +51,7 @@
 }
 
 .elSvgMapWrapper {
-  // position: relative;
-  // display: flex;
-  // flex-wrap: wrap;
-  // cursor: crosshair;
-
-  // &:not(._select_mode) {
-  //   .seat {
-  //     &._selected {
-  //       .hover({
-  //         :deep(rect) {
-  //           fill: #353ffb;
-  //         }
-  //       })
-  //     }
-  //   }
-  // }
-}
-
-.seat {
-  // :deep(rect) {
-  //   // --bg-color: #ff7b00!important;
-  //   // fill: #ff7b00;
-  //   // stroke: #ff7b00;
-  // }
-
-  user-select: none;
-  // transition: opacity .3s ease;
-
-  &._selected {
-    :deep(rect) {
-      fill: #979cf9;
-    }
-  }
-
-  &._unselected {
-    :deep(rect) {
-      fill: #f92b2b;
-    }
-  }
-
-  &._disabled {
-    fill-opacity: .5;
-    stroke-opacity: .5;
-  }
-}
-
-#selectionFrame {
-    position: absolute;
-    z-index: 100;
-    border: 1px groove rgb(66, 99, 110);
-    width: 0;
-    height: 0;
-    background-color: #97d8f863;
-    -webkit-user-select: none;
-    user-select: none;
-    visibility: hidden;
-}
-
-#elSvgMap {
-  // transition: transform .1s ease;
-  // transform-origin: 50% 50%;
-}
-
-#elSvgMap__inner {
-  // transform-origin: 50% 50%;
-  // transition: transform .2s ease;
+  //
 }
 
 ._grab {
