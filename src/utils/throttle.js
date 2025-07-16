@@ -7,6 +7,7 @@ export function throttle(func, ms) {
       if (isThrottled) {
           savedArgs = arguments
           savedThis = this
+
           return
       }
 
@@ -16,6 +17,7 @@ export function throttle(func, ms) {
 
       setTimeout(function() {
           isThrottled = false
+
           if (savedArgs) {
               wrapper.apply(savedThis, savedArgs)
               savedArgs = savedThis = null
