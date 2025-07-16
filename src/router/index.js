@@ -1,19 +1,20 @@
+import SchemeView from '@/views/schemeView/SchemeView.vue'
+
 import { createWebHistory, createRouter } from 'vue-router'
 
-import SchemeAdminView from '@/views/SchemeAdminView/SchemeAdminView.vue'
 
 const routes = [
 
   {
     name: 'scheme_admin_view',
     path: '/',
-    component: SchemeAdminView,
+    component: SchemeView,
   },
   // FIXME: костыль для gh-pages
   {
     name: 'scheme_admin_view',
     path: '/vue_scheme_prototype',
-    component: SchemeAdminView,
+    component: SchemeView,
   },
   // FIXME: костыль для локального сервера live server
   // по дефолту он отркывает .../index.html
