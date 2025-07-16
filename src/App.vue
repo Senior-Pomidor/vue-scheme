@@ -1,7 +1,7 @@
 <script setup>
-// XXX: тут всё общение с наружей
-  import SchemeView from './views/schemeView/SchemeView.vue'
-  import { provide, inject, ref, useTemplateRef, onMounted } from 'vue'
+  import SchemeAdminView from './views/schemeAdminView/SchemeAdminView.vue'
+
+  import { provide, inject, ref, computed, useTemplateRef, onMounted } from 'vue'
 
   // конфиг схемы
   const schemeConfig = ref({})
@@ -28,12 +28,18 @@
   })
 
   hallSchemeApp.on(events.updateSeatsChunk, ({ detail }) => {
+    // for (const id in detail.seats) {
+    //   schemeSeats.value[id] = detail.seats[id]
+    // }
+
     schemeSeatsChunk.value = detail.seats || {}
   })
 
   hallSchemeApp.on(events.setSelectionFilters, ({ detail }) => {
     selectionFilters.value = detail.filters || {}
   })
+
+  // hallSchemeApp.unselectSeats()
 
   const handleChangedSeatsState = seats => {
     selectedSeats.value = seats
@@ -78,22 +84,25 @@
     LoaderControl.decreaseCount()
   })
 
+  const getComponent = computed(() => SchemeAdminView)
+
   const schemeWrapperRef = useTemplateRef('schemeWrapper')
 
   onMounted(() => {
-    // блок скролла страницы при скролле на схеме
-    schemeWrapperRef.value.$el
-      .addEventListener('wheel', function(evt) {
-        const delta = evt.wheelDelta || -evt.detail
+  // блок скролла страницы при скролле на схеме
+  schemeWrapperRef.value.$el
+    .addEventListener('wheel', function(evt) {
+      const delta = evt.wheelDelta || -evt.detail;
 
-        this.scrollTop += (delta < 0 ? 1 : -1) * 30
-        evt.preventDefault()
-      })
+      this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+      evt.preventDefault();
+    })
   })
 </script>
 
 <template>
-  <SchemeView
+  <component
+    :is="getComponent"
     ref="schemeWrapper"
     class="vue_hall_scheme_wrapper"
     :class="{ _full_screen: isFullscreen }"
@@ -101,7 +110,7 @@
     @unselect-seats="handleUnselectSeats"
     @change-fullscreen-mode="handleChangeFullscreenMode"
   />
-  <!-- @clear-selected-seats="clearSelectedSeats = false" -->
+    <!-- @clear-selected-seats="clearSelectedSeats = false" -->
   <!-- <router-view
     @changed-seats-state="updateSelectedSeatsIds"
   >

@@ -3,7 +3,7 @@
     class="tooltip-dynamic"
     :class="classes"
     :style="style"
-  >
+>
 
     <!-- {{ parentSelector }} -->
     <!-- {{ parentEl }} -->
@@ -112,7 +112,6 @@
 
     beforeUnmount() {
       window.removeEventListener('scroll', this.changePosition)
-
       if (this.scrollSelector && document.querySelector(this.scrollSelector)) {
         document.querySelector(this.scrollSelector).removeEventListener('scroll', this.changePosition)
       }
@@ -156,7 +155,6 @@
       calcPosition(target, parent) {
         let top = 0
         let left = 0
-
         const offsets = {
           x: '',
           y: '',
@@ -164,7 +162,6 @@
 
         if (this.position === 'vertical') {
           let scrollTop = 0
-
           if (this.rootSelector) {
             scrollTop = document.querySelector(this.rootSelector)?.scrollTop || 0
           }
@@ -213,7 +210,6 @@
           top: `${top}px`,
           left: `${left}px`,
         }
-
         this.$emit('change-position', offsets)
       },
     },

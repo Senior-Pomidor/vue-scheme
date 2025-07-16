@@ -8,79 +8,20 @@
     "eslint:recommended",
     "plugin:vue/vue3-recommended"
   ],
-  "plugins": ["import"],
   "parser": "vue-eslint-parser",
-  "parserOptions": {
-    "ecmaVersion": 2023,
-    "sourceType": "module"
-  },
+  "parserOptions": { "ecmaVersion": 2023 },
   "rules": {
-    "import/order": [
-      "error",
-      {
-        "groups": [
-          [
-            "builtin", "internal", "external", "unknown",
-            "sibling", "parent", "index"
-          ]
-        ],
-        "pathGroups": [
-          {
-            "pattern": "@/components/**",
-            "group": "internal",
-            "position": "before"
-          },
-          {
-            "pattern": "@/utils/**",
-            "group": "internal",
-            "position": "before"
-          },
-          {
-            "pattern": "@/**/**",
-            "group": "internal",
-            "position": "before"
-          },
-          {
-            "pattern": "vue, vuex, vue-router",
-            "group": "external",
-            "position": "before"
-          },
-        ],
-        "pathGroupsExcludedImportTypes": ["builtin"],
-        "newlines-between": "always",
-        "alphabetize": {
-          "order": "asc",
-          "caseInsensitive": true
-        }
-      }
-    ],
-    "padding-line-between-statements": [
-      "error",
-      { "blankLine": "always", "prev": "*", "next": "return" },
-      { "blankLine": "always", "prev": "*", "next": "block" },
-      { "blankLine": "always", "prev": "block", "next": "*" },
-      { "blankLine": "always", "prev": "*", "next": "block-like" },
-      { "blankLine": "always", "prev": "block-like", "next": "*" },
-      { "blankLine": "always", "prev": "*", "next": "multiline-expression" },
-      { "blankLine": "always", "prev": "multiline-expression", "next": "*" },
-      { "blankLine": "always", "prev": "*", "next": "multiline-const" },
-      { "blankLine": "always", "prev": "multiline-const", "next": "*" },
-      { "blankLine": "always", "prev": "*", "next": "multiline-let" },
-      { "blankLine": "always", "prev": "multiline-let", "next": "*" },
-      { "blankLine": "always", "prev": "*", "next": "multiline-var" },
-      { "blankLine": "always", "prev": "multiline-var", "next": "*" }
-    ],
-    "max-len": [
-      "error",
-      {
-        "code": 100,
-        "tabWidth": 2,
-        "ignoreUrls": true,
-        "ignoreStrings": true,
-        "ignoreTemplateLiterals": true,
-        "ignoreComments": true
-      }
-    ],
+    // "max-len": [
+    //   "error",
+    //   {
+    //     "code": 100,
+    //     "tabWidth": 2,
+    //     "ignoreUrls": true,
+    //     "ignoreStrings": true,
+    //     "ignoreTemplateLiterals": true,
+    //     "ignoreComments": true
+    //   }
+    // ],
     "no-alert": "off",
     "no-console": 0,
     "no-eval": "error",
@@ -335,10 +276,10 @@
       "error",
       "as-needed"
     ],
-     "quotes": [
-       "error",
-       "single"
-     ],
+    "quotes": [
+      "error",
+      "single"
+    ],
     "semi": [
         "error",
         "never"
@@ -507,4 +448,18 @@
     "vue/no-multiple-template-root": "off",
     "vue/require-v-for-key": "off"
   }
+  // "overrides": [
+  //   {
+  //     "files": "**/*.vue",
+  //     "rules": {
+  //       "indent": [
+  //         "error",
+  //         2,
+  //         {
+  //           "SwitchCase": 1
+  //         }
+  //       ]
+  //     }
+  //   }
+  // ]
 }

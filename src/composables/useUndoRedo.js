@@ -1,6 +1,5 @@
-import { VStateHistoryManager } from '@/js/VStateHistoryManager'
-
 import { onMounted, onUnmounted } from 'vue'
+import { VStateHistoryManager } from '@/js/VStateHistoryManager'
 
 function useUndoRedo(stateRef) {
   if (!stateRef?.value) {
