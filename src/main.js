@@ -5,6 +5,8 @@ import './style.css'
 
 import { HallSchemeView } from '@/js/classes/HallSchemeView'
 
+import VueKonva from 'vue-konva'
+
 // global styles
 import '@/assets/less/vendors.less'
 import '@/assets/less/bundle.less'
@@ -43,6 +45,7 @@ class VueHallSchemeView extends HallSchemeView {
     this.#rootSelector = rootSelector
 
     this.#app = createApp(App)
+      .use(VueKonva)
       .provide('hallSchemeApp', this)
       .mount(this.#rootSelector)
 

@@ -43,5 +43,10 @@
     "dist"
   ],
   "main": "./dist/vue_hall_scheme_view.cjs",
-  "module": "./dist/vue_hall_scheme_view.js"
+  "module": "./dist/vue_hall_scheme_view.js",
+  "dependencies": {
+    "konva": "^9.3.22",
+    "rbush": "^4.0.1",
+    "vue-konva": "^3.2.2"
+  }
 }
