@@ -509,6 +509,7 @@
               // FIXME: убрать в конфиг
             }"
             @click="onSeatClick(seats[id])"
+            @touchend="onSeatClick(seats[id])"
             @mouseenter="onMouseEnter(id)"
             @mouseleave="onMouseLeave(id)"
           />
