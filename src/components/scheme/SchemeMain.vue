@@ -9,9 +9,12 @@
 
   import Konva from 'konva'
   import RBush from 'rbush'
-  import { ref, reactive, onMounted, watch, inject, onUnmounted } from 'vue'
+  import { ref, reactive, onMounted, computed, watch, inject, onUnmounted } from 'vue'
 
   const seats = inject('schemeSeats')
+  const seatsChunk = inject('schemeSeatsChunk')
+
+  const actualSeats = ref({})
 
   const emit = defineEmits([
     'changedSeatsState',
@@ -65,51 +68,55 @@
   })
 
   // Конфиг для прямоугольников мест
-  const getRectConfig = seat => ({
-    x: seat.x,
-    y: seat.y,
-    width: SEAT_SIZE,
-    height: SEAT_SIZE,
-    fill: (() => {
-      let color = '#ccc'
+  const getRectConfig = seat =>
+    // console.log(seat)
 
-      if (seat.bg_color) {
-        if (Array.isArray(seat.bg_color)) {
-          color = seat.bg_color[0]
-        } else {
-          color = seat.bg_color
+    ({
+      x: seat.x,
+      y: seat.y,
+      width: SEAT_SIZE,
+      height: SEAT_SIZE,
+      fill: (() => {
+        let color = '#ccc'
+
+        if (seat.bg_color) {
+          if (Array.isArray(seat.bg_color)) {
+            color = seat.bg_color[0]
+          } else {
+            color = seat.bg_color
+          }
         }
-      }
 
-      // FIXME: временно для выделения мест
-      if (fillRects.value[seat.id]) {
-        color = 'red'
-      }
+        // FIXME: временно для выделения мест
+        // if (fillRects.value[seat.id]) {
+        //   color = 'red'
+        // }
 
-      return color
-    })(),
-    stroke: (() => {
-      let color = '#000'
+        return color
+      })(),
+      stroke: (() => {
+        let color = '#000'
 
-      if (seat.border_color) {
-        if (Array.isArray(seat.border_color)) {
-          color = seat.border_color[0]
-        } else {
-          color = seat.border_color
+        if (seat.border_color) {
+          if (Array.isArray(seat.border_color)) {
+            color = seat.border_color[0]
+          } else {
+            color = seat.border_color
+          }
         }
-      }
 
-      // FIXME: временно для выделения мест
-      if (fillRects.value[seat.id]) {
-        color = 'lightgreen'
-      }
+        // FIXME: временно для выделения мест
+        if (fillRects.value[seat.id]) {
+          color = 'lightgreen'
+        }
 
-      return color
-    })(),
-    strokeWidth: 1,
-    cornerRadius: 4,
-    listening: true,
-  })
+        return color
+      })(),
+      strokeWidth: 1,
+      cornerRadius: 4,
+      listening: true,
+    })
+
 
   // Конфиг для текста мест
   const getTextConfigSeat = seat => {
@@ -327,7 +334,7 @@
     const ctx = offscreenCanvas.value.getContext('2d')
     ctx.clearRect(0, 0, offscreenCanvas.value.width, offscreenCanvas.value.height)
 
-    Object.values(seats.value).forEach(seat => {
+    Object.values(actualSeats.value).forEach(seat => {
       drawSeatOnBuffer(ctx, seat, SEAT_SIZE)
     })
 
@@ -402,12 +409,16 @@
 
   const onSeatClick = seat => {
     // FIXME: заменить на нормальное обновление состояния
-    emit('changedSeatsState', {
-      [seat.id]: seat,
-    })
+    // emit('changedSeatsState', {
+    //   [seat.id]: seat,
+    // })
+
+    toggleSeatSelect(seat.id)
+
+    // seatsState.value.selectedSeats[seat.id] = seat
 
     // FIXME: заменить на нормальное обновление состояния, тут для демо
-    fillRects.value[seat.id] = true
+    // fillRects.value[seat.id] = true
 
     // Обновление состояния места
     // seatsStore.updateSeatStatus(seat.id, 'selected')
@@ -445,10 +456,49 @@
     updateVisibleSeats()
   }
 
+
+  // при выборе добавляем или удаляем место и индекс из seatsState
+  // отправляем событие наружу с местами
+  // при получении снаружи мест через замену целиком или через чанк, обновляем состояние с индексом
+
+
+  // START: seats state
+  const seatsState = ref({
+    selectedSeats: {},
+    // spatialIndex: null,
+  })
+
+  // возвращает формат идентичный seatsState
+  const getSeatsState = computed(() => {
+    const seatsStateCopy = JSON.parse(JSON.stringify(seatsState.value))
+    const seatsStateCopyRef = ref(seatsStateCopy)
+
+    return seatsStateCopyRef
+  })
+
+  watch(() => getSeatsState.value, newVal => {
+    console.log('getSeatsState.value : ', newVal)
+
+    emit('changedSeatsState', newVal.value.selectedSeats)
+  })
+
+  const toggleSeatSelect = id => {
+    if (seatsState.value.selectedSeats[id]) {
+      delete seatsState.value.selectedSeats[id]
+    } else {
+      seatsState.value.selectedSeats[id] = seats.value[id]
+    }
+  }
+  // END: seats state
+
   watch(seats, (newSeats, oldSeats) => {
+    console.log('watch seats', newSeats)
+
     if (!newSeats) {
       return
     }
+
+    actualSeats.value = newSeats
 
     initOffscreenCanvas()
 
@@ -456,6 +506,29 @@
 
     createFullSnapshot()
     updateVisibleSeats()
+  }, { deep: true })
+
+  watch(seatsChunk, newSeatsChunk => {
+    console.log('watch newSeatsChunk', newSeatsChunk)
+
+    if (!newSeatsChunk) {
+      return
+    }
+
+    actualSeats.value = {
+      ...actualSeats.value,
+      ...newSeatsChunk,
+    }
+
+    console.log(actualSeats.value)
+
+    // initOffscreenCanvas()
+
+    // spatialIndex = buildSpatialIndex(seats.value, SEAT_SIZE)
+    // Обновление UI в слое объектов
+    // objectsLayerRef.value.getNode().clearCache()
+    createFullSnapshot()
+    // updateVisibleSeats()
   }, { deep: true })
 
   const hoveredId = ref(null)
@@ -504,20 +577,20 @@
           <!-- FIXME: Место возможно в отдельный компонент, внутри вычислять конфиги -->
           <v-rect
             :config="{
-              ...getRectConfig(seats[id]),
-              fill: hoveredId == id ? 'blue' : getRectConfig(seats[id]).fill,
+              ...getRectConfig(actualSeats[id]),
+              fill: hoveredId == id ? 'blue' : getRectConfig(actualSeats[id]).fill,
               // FIXME: убрать в конфиг
             }"
-            @click="onSeatClick(seats[id])"
-            @touchend="onSeatClick(seats[id])"
+            @click="onSeatClick(actualSeats[id])"
+            @touchend="onSeatClick(actualSeats[id])"
             @mouseenter="onMouseEnter(id)"
             @mouseleave="onMouseLeave(id)"
           />
           <v-text
-            :config="getTextConfigSeat(seats[id])"
+            :config="getTextConfigSeat(actualSeats[id])"
           />
           <v-text
-            :config="getTextConfigRow(seats[id])"
+            :config="getTextConfigRow(actualSeats[id])"
           />
         </template>
       </v-layer>
