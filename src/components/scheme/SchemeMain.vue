@@ -1,5 +1,7 @@
 <script setup>
 
+// XXX: на 45к мест перерисовка занимает 3 секунды
+
 // TODO: внешний вид мест привести к одному (текст, бг, границы) +
 // TODO: отрисовка на снимке с конфига места +
 // TODO: курсор на нужный блок (не будем менять) +
@@ -7,9 +9,20 @@
 // TODO: причесать код, вынести лишний функционал (в след)
 // TODO: центрирование (в след задаче)
 
+
+// TODO: стейт хистори менеджер
+// TODO: рефакторинг
+// TODO: выделение мест рамкой
+
+// TODO: после обновления чанка обновлять только область, а не весь снимок (доработки)
+// TODO: после обновления чанка заменять только новые места, а не все (доработки)
+// TODO: заменить на Map() объекты с местами (хз, проверим надо ли, по скорости вроде не выиграем, доработки)
+
+
+  import SchemeSeat from './SchemeSeat.vue'
   import Konva from 'konva'
   import RBush from 'rbush'
-  import { ref, reactive, onMounted, computed, watch, inject, onUnmounted } from 'vue'
+  import { ref, reactive, onMounted, computed, watch, inject, provide, onUnmounted } from 'vue'
 
   const seats = inject('schemeSeats')
   const seatsChunk = inject('schemeSeatsChunk')
@@ -438,7 +451,7 @@
     // Принудительное обновление снимка
     snapshotImageRef.value.getNode().image(offscreenCanvas.value)
 
-    snapshotImageRef.value.value
+    snapshotImageRef.value
       .getNode()
       .getLayer()
       .batchDraw()
@@ -520,7 +533,7 @@
       ...newSeatsChunk,
     }
 
-    console.log(actualSeats.value)
+    seatsState.value.selectedSeats = {}
 
     // initOffscreenCanvas()
 
@@ -531,17 +544,13 @@
     // updateVisibleSeats()
   }, { deep: true })
 
-  const hoveredId = ref(null)
-
 
   const onMouseEnter = id => {
     schemeMainRef.value.style.cursor = 'pointer'
-    hoveredId.value = id
   }
 
   const onMouseLeave = id => {
     schemeMainRef.value.style.cursor = 'default'
-    hoveredId.value = null
   }
 
   onMounted(() => {
@@ -553,6 +562,9 @@
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
   })
+
+  // Пробрасываем константы в компонент через provide
+  provide('SEAT_SIZE', SEAT_SIZE)
 </script>
 
 <template>
@@ -573,26 +585,15 @@
       <!-- Слой реальных объектов -->
       <v-layer ref="objectsLayerRef">
         <!-- Видимые места -->
-        <template v-for="id in visibleSeatIds" :key="id">
-          <!-- FIXME: Место возможно в отдельный компонент, внутри вычислять конфиги -->
-          <v-rect
-            :config="{
-              ...getRectConfig(actualSeats[id]),
-              fill: hoveredId == id ? 'blue' : getRectConfig(actualSeats[id]).fill,
-              // FIXME: убрать в конфиг
-            }"
-            @click="onSeatClick(actualSeats[id])"
-            @touchend="onSeatClick(actualSeats[id])"
-            @mouseenter="onMouseEnter(id)"
-            @mouseleave="onMouseLeave(id)"
-          />
-          <v-text
-            :config="getTextConfigSeat(actualSeats[id])"
-          />
-          <v-text
-            :config="getTextConfigRow(actualSeats[id])"
-          />
-        </template>
+        <SchemeSeat
+          v-for="id in visibleSeatIds"
+          :key="id"
+          :seat="actualSeats[id]"
+          :selected="!!seatsState.selectedSeats[id]"
+          @click="onSeatClick"
+          @mouseenter="onMouseEnter"
+          @mouseleave="onMouseLeave"
+        />
       </v-layer>
     </v-stage>
   </div>
