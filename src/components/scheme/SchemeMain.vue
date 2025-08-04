@@ -100,10 +100,9 @@
           }
         }
 
-        // FIXME: временно для выделения мест
-        // if (fillRects.value[seat.id]) {
-        //   color = 'red'
-        // }
+        if (seatsState.value.selectedSeats[seat.id]) {
+          color = 'blue'
+        }
 
         return color
       })(),
@@ -481,6 +480,13 @@
     // spatialIndex: null,
   })
 
+  const resetSeatsState = () => {
+    seatsState.value = {
+      selectedSeats: {},
+    // spatialIndex: null,
+    }
+  }
+
   // возвращает формат идентичный seatsState
   const getSeatsState = computed(() => {
     const seatsStateCopy = JSON.parse(JSON.stringify(seatsState.value))
@@ -513,6 +519,7 @@
 
     actualSeats.value = newSeats
 
+    resetSeatsState()
     initOffscreenCanvas()
 
     spatialIndex = buildSpatialIndex(seats.value, SEAT_SIZE)
@@ -533,7 +540,7 @@
       ...newSeatsChunk,
     }
 
-    seatsState.value.selectedSeats = {}
+    resetSeatsState()
 
     // initOffscreenCanvas()
 

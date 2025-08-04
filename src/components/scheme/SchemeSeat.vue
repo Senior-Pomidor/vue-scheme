@@ -31,8 +31,7 @@
       y: props.seat.y,
       width: SEAT_SIZE,
       height: SEAT_SIZE,
-      // fill: props.hovered ? 'blue' : props.selected ? 'green' : fill,
-      fill: isHovered.value ? 'blue' : fill,
+      fill: isHovered.value || props.selected ? 'blue' : fill,
       stroke: props.selected ? 'lightgreen' : stroke,
       strokeWidth: 1,
       cornerRadius: 4,
@@ -83,11 +82,13 @@
 </script>
 
 <template>
+  {{ props.selected }}
   <v-rect
     :config="rectConfig"
     @click="onClick"
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
+    @touchend="onClick"
   />
   <v-text :config="seatTextConfig" />
   <v-text :config="rowTextConfig" />
