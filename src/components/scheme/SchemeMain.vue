@@ -10,14 +10,17 @@
 // TODO: центрирование (в след задаче)
 
 
-// TODO: стейт хистори менеджер
-// TODO: рефакторинг
+// TODO: стейт хистори менеджер +
 // TODO: выделение мест рамкой
+// TODO: рефакторинг
 
-// TODO: после обновления чанка обновлять только область, а не весь снимок (доработки)
+// TODO: после обновления чанка обновлять только часть снимка, а не весь снимок (доработки)
 // TODO: после обновления чанка заменять только новые места, а не все (доработки)
 // TODO: заменить на Map() объекты с местами (хз, проверим надо ли, по скорости вроде не выиграем, доработки)
+// TODO: при отмене ctrl+z обновлять только часть снимка (доработки)
 
+
+  import { useUndoRedo } from '@/composables/useUndoRedo'
 
   import SchemeSeat from './SchemeSeat.vue'
   import Konva from 'konva'
@@ -427,6 +430,8 @@
 
     toggleSeatSelect(seat.id)
 
+    StateHistoryManager.saveState(seatsState.value)
+
     // seatsState.value.selectedSeats[seat.id] = seat
 
     // FIXME: заменить на нормальное обновление состояния, тут для демо
@@ -441,7 +446,7 @@
     // Частичное обновление снимка
     updateSnapshotArea(
       seat,
-      seats.value,
+      actualSeats.value,
       offscreenCanvas.value,
       spatialIndex,
       SEAT_SIZE,
@@ -487,6 +492,12 @@
     }
   }
 
+  const {
+    StateHistoryManager,
+    undoLastAction,
+  } = useUndoRedo(seatsState, createFullSnapshot)
+  // FIXME: заменить на перерисовку области снимка с выделенными местами из предыдущего сохранения
+
   // возвращает формат идентичный seatsState
   const getSeatsState = computed(() => {
     const seatsStateCopy = JSON.parse(JSON.stringify(seatsState.value))
@@ -520,6 +531,10 @@
     actualSeats.value = newSeats
 
     resetSeatsState()
+    StateHistoryManager.clearState()
+    StateHistoryManager.saveState(seatsState.value)
+
+
     initOffscreenCanvas()
 
     spatialIndex = buildSpatialIndex(seats.value, SEAT_SIZE)
@@ -541,6 +556,9 @@
     }
 
     resetSeatsState()
+
+    StateHistoryManager.clearState()
+    StateHistoryManager.saveState(seatsState.value)
 
     // initOffscreenCanvas()
 
