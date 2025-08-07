@@ -11,7 +11,9 @@
 
 
 // TODO: стейт хистори менеджер +
-// TODO: выделение мест рамкой
+// TODO: выделение мест рамкой +
+// TODO: рефакторинг по кодстайлу (поменять последний коммит)
+// TODO: переключение режимов перетягивание + ведение + рамка по шифту / перетягивание + рамка по шифту
 // TODO: рефакторинг
 
 // TODO: после обновления чанка обновлять только часть снимка, а не весь снимок (доработки)
@@ -21,6 +23,7 @@
 
 
   import { useUndoRedo } from '@/composables/useUndoRedo'
+  import {throttle} from '@/utils/throttle'
 
   import SchemeSeat from './SchemeSeat.vue'
   import Konva from 'konva'
@@ -52,6 +55,8 @@
   // Паддинг для снимка чтобы не обрезался по краям
   const SNAPSHOT_PADDING = 40
 
+  // режим перетягивание/рисование рамки выделения
+  const isDraggable = ref(true)
   const isDragging = ref(false)
   const currentZoom = ref(1)
   const visibleSeatIds = ref([]) // ID видимых мест
@@ -78,9 +83,16 @@
   const stageConfig = reactive({
     width: 1000,
     height: 700,
-    draggable: true,
+    draggable: isDraggable.value,
     scaleX: currentZoom.value,
     scaleY: currentZoom.value,
+  })
+
+  const getStageConfig = computed(() => {
+    return {
+      ...stageConfig,
+      draggable: isDraggable.value,
+    }
   })
 
   // Конфиг для прямоугольников мест
@@ -391,6 +403,10 @@
 
   // Обработчики событий
   const onDragStart = () => {
+    if (!isDraggable) {
+      return
+    }
+
     isDragging.value = true
 
     if (currentZoom.value <= SNAPSHOT_ZOOM_THRESHOLD) {
@@ -400,6 +416,10 @@
   }
 
   const onDragEnd = () => {
+    if (!isDraggable) {
+      return
+    }
+
     isDragging.value = false
     snapshotLayerRef.value.getNode().hide()
     objectsLayerRef.value.getNode().show()
@@ -578,6 +598,135 @@
     schemeMainRef.value.style.cursor = 'default'
   }
 
+
+  // START: рамка-выделение
+
+  const currentSelectedSeats = ref({})
+
+  const selectionRect = ref({
+    visible: false,
+    x1: 0,
+    y1: 0,
+    x2: 0,
+    y2: 0,
+  })
+
+
+  const selectionRectProps = computed(() => ({
+    fill: 'rgba(0,0,255,0.5)',
+    visible: selectionRect.value.visible,
+    x: Math.min(selectionRect.value.x1, selectionRect.value.x2),
+    y: Math.min(selectionRect.value.y1, selectionRect.value.y2),
+    width: Math.abs(selectionRect.value.x2 - selectionRect.value.x1),
+    height: Math.abs(selectionRect.value.y2 - selectionRect.value.y1),
+    // ref: selectionRectRef,
+  }))
+
+  const getRelativePointerPosition = (stageNode) => {
+    if (!stageNode) return { x: 0, y: 0 };
+
+    const pointerPos = stageNode.getPointerPosition();
+    if (!pointerPos) return { x: 0, y: 0 };
+
+    // Правильное преобразование с учетом трансформации
+    const transform = stageNode.getAbsoluteTransform().copy();
+    return transform.invert().point(pointerPos);
+  };
+
+
+  const onMouseDown = (evt) => {
+    if (isDraggable.value) return;
+
+    const stageNode = stageRef.value.getNode();
+    const pos = getRelativePointerPosition(stageNode);
+
+    selectionRect.value = {
+      visible: true,
+      x1: pos.x,
+      y1: pos.y,
+      x2: pos.x,
+      y2: pos.y,
+    };
+  };
+
+  const onMouseMove = (evt) => {
+    if (isDraggable.value || !selectionRect.value.visible) return;
+
+    const stageNode = stageRef.value.getNode();
+    const pos = getRelativePointerPosition(stageNode);
+
+    selectionRect.value = {
+      ...selectionRect.value,
+      x2: pos.x,
+      y2: pos.y,
+    };
+
+ const box = {
+      x: Math.min(selectionRect.value.x1, selectionRect.value.x2),
+      y: Math.min(selectionRect.value.y1, selectionRect.value.y2),
+      width: Math.abs(selectionRect.value.x2 - selectionRect.value.x1),
+      height: Math.abs(selectionRect.value.y2 - selectionRect.value.y1),
+    };
+
+    // const ids = [];
+    const selectedSeats = {};
+
+    // Используем наш spatialIndex для поиска пересечений
+    const candidateSeats = spatialIndex.search({
+      minX: box.x,
+      minY: box.y,
+      maxX: box.x + box.width,
+      maxY: box.y + box.height,
+    });
+
+    // Проверяем точное пересечение
+    candidateSeats.forEach(item => {
+      const seatRect = {
+        x: actualSeats.value[item.id].x,
+        y: actualSeats.value[item.id].y,
+        width: SEAT_SIZE,
+        height: SEAT_SIZE,
+      };
+
+      if (rectanglesIntersect(box, seatRect)) {
+        // ids.push(item.id);
+        selectedSeats[item.id] = actualSeats.value[item.id];
+      }
+    });
+
+    currentSelectedSeats.value = {...selectedSeats}
+
+    // console.log("Selected IDs:", selectedSeats);
+  };
+
+  const rectanglesIntersect = (rect1, rect2) => {
+    return rect1.x < rect2.x + rect2.width &&
+          rect1.x + rect1.width > rect2.x &&
+          rect1.y < rect2.y + rect2.height &&
+          rect1.y + rect1.height > rect2.y;
+  };
+
+  const onMouseUp = (evt) => {
+    if (isDraggable.value || !selectionRect.value.visible) return;
+
+    seatsState.value.selectedSeats = {
+      ...seatsState.value.selectedSeats,
+      ...currentSelectedSeats.value,
+    }
+
+    StateHistoryManager.saveState(seatsState.value)
+    currentSelectedSeats.value = {}
+
+    // FIXME: заменить на перерисовку области, а не всего снимка
+    createFullSnapshot()
+
+    selectionRect.value.visible = false;
+  };
+
+
+
+  // END: рамка-выделение
+
   onMounted(() => {
     handleResize()
 
@@ -594,10 +743,15 @@
 
 <template>
   <div ref="schemeMainRef" class="scheme_main">
+    <!-- FIXME: временно -->
+    <button @click="isDraggable = !isDraggable">isDraggable: {{ isDraggable }}</button>
     <v-stage
       ref="stageRef"
       class="stageRef"
-      :config="stageConfig"
+      :config="getStageConfig"
+      @mouseDown="onMouseDown"
+      @mouseUp="onMouseUp"
+      @mouseMove="throttle(onMouseMove, 16.7)()"
       @dragstart="onDragStart"
       @dragend="onDragEnd"
       @wheel="evt => handleZoom(currentZoom * (evt.evt.deltaY > 0 ? 0.95 : 1.05))"
@@ -614,11 +768,16 @@
           v-for="id in visibleSeatIds"
           :key="id"
           :seat="actualSeats[id]"
-          :selected="!!seatsState.selectedSeats[id]"
+          :selected="!!seatsState.selectedSeats[id] || Boolean(currentSelectedSeats[id])"
           @click="onSeatClick"
           @mouseenter="onMouseEnter"
           @mouseleave="onMouseLeave"
         />
+      </v-layer>
+
+      <!-- Слой для рамки выделения -->
+      <v-layer>
+        <v-rect :config="selectionRectProps" />
       </v-layer>
     </v-stage>
   </div>

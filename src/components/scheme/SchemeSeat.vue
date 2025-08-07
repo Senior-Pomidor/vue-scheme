@@ -36,6 +36,8 @@
       strokeWidth: 1,
       cornerRadius: 4,
       listening: true,
+      name: 'shape',
+      id: String(props.seat.id),
     }
   })
 
