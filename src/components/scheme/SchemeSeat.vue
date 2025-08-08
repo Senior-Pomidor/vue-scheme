@@ -5,6 +5,7 @@
     seat: Object,
     hovered: Boolean,
     selected: Boolean,
+    unselected: Boolean,
   })
 
   const emit = defineEmits(['click', 'mouseenter', 'mouseleave'])
@@ -26,12 +27,20 @@
       stroke = stroke[0]
     }
 
+    if (isHovered.value || props.selected) {
+      fill = 'blue'
+    }
+
+    if (props.unselected) {
+      fill = 'violet'
+    }
+
     return {
       x: props.seat.x,
       y: props.seat.y,
       width: SEAT_SIZE,
       height: SEAT_SIZE,
-      fill: isHovered.value || props.selected ? 'blue' : fill,
+      fill: fill,
       stroke: props.selected ? 'lightgreen' : stroke,
       strokeWidth: 1,
       cornerRadius: 4,

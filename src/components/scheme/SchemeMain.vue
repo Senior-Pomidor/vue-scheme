@@ -14,6 +14,7 @@
 // TODO: выделение мест рамкой +
 // TODO: рефакторинг по кодстайлу (поменять последний коммит)
 // TODO: переключение режимов перетягивание + ведение + рамка по шифту / перетягивание + рамка по шифту
+// TODO: причесать выделение/развыделение
 // TODO: рефакторинг
 
 // TODO: после обновления чанка обновлять только часть снимка, а не весь снимок (доработки)
@@ -601,9 +602,12 @@
 
   // START: рамка-выделение
 
+  const isUnselectionMode = ref(false)
+
   const currentSelectedSeats = ref({})
 
   const selectionRect = ref({
+    fill: 'rgba(0,0,255,0.5)',
     visible: false,
     x1: 0,
     y1: 0,
@@ -613,7 +617,7 @@
 
 
   const selectionRectProps = computed(() => ({
-    fill: 'rgba(0,0,255,0.5)',
+    fill: selectionRect.value.fill,
     visible: selectionRect.value.visible,
     x: Math.min(selectionRect.value.x1, selectionRect.value.x2),
     y: Math.min(selectionRect.value.y1, selectionRect.value.y2),
@@ -641,6 +645,7 @@
     const pos = getRelativePointerPosition(stageNode);
 
     selectionRect.value = {
+      ...selectionRect.value,
       visible: true,
       x1: pos.x,
       y1: pos.y,
@@ -661,7 +666,7 @@
       y2: pos.y,
     };
 
- const box = {
+    const box = {
       x: Math.min(selectionRect.value.x1, selectionRect.value.x2),
       y: Math.min(selectionRect.value.y1, selectionRect.value.y2),
       width: Math.abs(selectionRect.value.x2 - selectionRect.value.x1),
@@ -694,7 +699,11 @@
       }
     });
 
-    currentSelectedSeats.value = {...selectedSeats}
+    if (isUnselectionMode.value) {
+      currentUnselectedSeats.value = {...selectedSeats}
+    } else {
+      currentSelectedSeats.value = {...selectedSeats}
+    }
 
     // console.log("Selected IDs:", selectedSeats);
   };
@@ -709,13 +718,26 @@
   const onMouseUp = (evt) => {
     if (isDraggable.value || !selectionRect.value.visible) return;
 
-    seatsState.value.selectedSeats = {
-      ...seatsState.value.selectedSeats,
-      ...currentSelectedSeats.value,
+    if (isUnselectionMode.value) {
+      const oldSelectedSeats = {...seatsState.value.selectedSeats}
+
+      for (const id in currentUnselectedSeats.value) {
+        delete oldSelectedSeats[id]
+      }
+
+      seatsState.value.selectedSeats = {
+        ...oldSelectedSeats,
+      }
+    } else {
+      seatsState.value.selectedSeats = {
+        ...seatsState.value.selectedSeats,
+        ...currentSelectedSeats.value,
+      }
     }
 
     StateHistoryManager.saveState(seatsState.value)
     currentSelectedSeats.value = {}
+    currentUnselectedSeats.value = {}
 
     // FIXME: заменить на перерисовку области, а не всего снимка
     createFullSnapshot()
@@ -725,16 +747,67 @@
 
 
 
+  // развыделение
+  const currentUnselectedSeats = ref({})
+
+  const handleUnselectionKeyDown = evt => {
+    if (evt.key === 'Control' || evt.key === 'Meta') {
+      isUnselectionMode.value = true
+      selectionRect.value.fill = 'rgba(255,0,0,0.5)'
+    }
+  }
+
+  const handleUnselectionKeyUp = evt => {
+    if (evt.key === 'Control' || evt.key === 'Meta') {
+      isUnselectionMode.value = false
+      selectionRect.value.fill = 'rgba(0,0,255,0.5)'
+    }
+  }
+
+  const unselectionListenersAdd = () => {
+    document.addEventListener('keydown', handleUnselectionKeyDown)
+    document.addEventListener('keyup', handleUnselectionKeyUp)
+  }
+
+  const unselectionListenersRemove = () => {
+    document.removeEventListener('keydown', handleUnselectionKeyDown)
+    document.removeEventListener('keyup', handleUnselectionKeyUp)
+  }
+
+  // document.addEventListener('keydown', evt => {
+  //   if (evt.key === 'Control' || evt.key === 'Meta') {
+  //     isControlKey.value = true
+  //   }
+
+  //   if (isControlKey.value && !currentAction.value) {
+  //     currentAction.value = 'unselection'
+  //   }
+  // })
+
+  // document.addEventListener('keyup', evt => {
+  //   if (evt.key === 'Control' || evt.key === 'Meta') {
+  //     isControlKey.value = false
+  //   }
+
+  //   if (!isMouseDown.value) {
+  //     currentAction.value = ''
+  //   }
+  // })
+
+
+
   // END: рамка-выделение
 
   onMounted(() => {
     handleResize()
 
     window.addEventListener('resize', handleResize)
+    unselectionListenersAdd()
   })
 
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
+    unselectionListenersRemove()
   })
 
   // Пробрасываем константы в компонент через provide
@@ -769,6 +842,7 @@
           :key="id"
           :seat="actualSeats[id]"
           :selected="!!seatsState.selectedSeats[id] || Boolean(currentSelectedSeats[id])"
+          :unselected="!!currentUnselectedSeats[id]"
           @click="onSeatClick"
           @mouseenter="onMouseEnter"
           @mouseleave="onMouseLeave"
