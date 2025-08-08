@@ -16,6 +16,7 @@
 // TODO: переключение режимов перетягивание + ведение + рамка по шифту / перетягивание + рамка по шифту
 // TODO: причесать выделение/развыделение
 // TODO: рефакторинг
+// TODO: zoom сделать плавным и в центр экрана или в курсор при клике
 
 // TODO: после обновления чанка обновлять только часть снимка, а не весь снимок (доработки)
 // TODO: после обновления чанка заменять только новые места, а не все (доработки)
@@ -29,7 +30,7 @@
   import SchemeSeat from './SchemeSeat.vue'
   import Konva from 'konva'
   import RBush from 'rbush'
-  import { ref, reactive, onMounted, computed, watch, inject, provide, onUnmounted } from 'vue'
+  import { ref, reactive, onMounted, computed, watch, inject, provide, onBeforeUnmount, nextTick } from 'vue'
 
   const seats = inject('schemeSeats')
   const seatsChunk = inject('schemeSeatsChunk')
@@ -57,9 +58,9 @@
   const SNAPSHOT_PADDING = 40
 
   // режим перетягивание/рисование рамки выделения
-  const isDraggable = ref(true)
+  const isDraggableMode = ref(true)
   const isDragging = ref(false)
-  const currentZoom = ref(1)
+  const currentZoom = ref(1.3)
   const visibleSeatIds = ref([]) // ID видимых мест
 
   const stageRef = ref(null)
@@ -84,23 +85,22 @@
   const stageConfig = reactive({
     width: 1000,
     height: 700,
-    draggable: isDraggable.value,
-    scaleX: currentZoom.value,
-    scaleY: currentZoom.value,
+    // draggable: isDraggableMode.value,
+    // scaleX: currentZoom.value,
+    // scaleY: currentZoom.value,
   })
 
   const getStageConfig = computed(() => {
     return {
       ...stageConfig,
-      draggable: isDraggable.value,
+      scaleX: currentZoom.value,
+      scaleY: currentZoom.value,
+      draggable: isDraggableMode.value,
     }
   })
 
   // Конфиг для прямоугольников мест
-  const getRectConfig = seat =>
-    // console.log(seat)
-
-    ({
+  const getRectConfig = seat => ({
       x: seat.x,
       y: seat.y,
       width: SEAT_SIZE,
@@ -404,7 +404,7 @@
 
   // Обработчики событий
   const onDragStart = () => {
-    if (!isDraggable) {
+    if (!isDraggableMode) {
       return
     }
 
@@ -417,7 +417,7 @@
   }
 
   const onDragEnd = () => {
-    if (!isDraggable) {
+    if (!isDraggableMode) {
       return
     }
 
@@ -607,9 +607,9 @@
 
   watch(isModeGrabbing, val => {
     if (val) {
-      isDraggable.value = true
+      isDraggableMode.value = true
     } else {
-      isDraggable.value = false
+      isDraggableMode.value = false
     }
   }, { immediate: true })
 
@@ -694,7 +694,7 @@
 
 
   const onMouseDown = (evt) => {
-    if (isDraggable.value) return;
+    if (isDraggableMode.value) return;
 
     const stageNode = stageRef.value.getNode();
     const pos = getRelativePointerPosition(stageNode);
@@ -710,7 +710,7 @@
   };
 
   const onMouseMove = (evt) => {
-    if (isDraggable.value || !selectionRect.value.visible) return;
+    if (isDraggableMode.value || !selectionRect.value.visible) return;
 
     const stageNode = stageRef.value.getNode();
     const pos = getRelativePointerPosition(stageNode);
@@ -771,7 +771,7 @@
   };
 
   const onMouseUp = (evt) => {
-    if (isDraggable.value) {
+    if (isDraggableMode.value) {
       selectionRect.value.visible = false
 
       return
@@ -837,29 +837,31 @@
     document.removeEventListener('keyup', handleUnselectionKeyUp)
   }
 
-  // document.addEventListener('keydown', evt => {
-  //   if (evt.key === 'Control' || evt.key === 'Meta') {
-  //     isControlKey.value = true
-  //   }
-
-  //   if (isControlKey.value && !currentAction.value) {
-  //     currentAction.value = 'unselection'
-  //   }
-  // })
-
-  // document.addEventListener('keyup', evt => {
-  //   if (evt.key === 'Control' || evt.key === 'Meta') {
-  //     isControlKey.value = false
-  //   }
-
-  //   if (!isMouseDown.value) {
-  //     currentAction.value = ''
-  //   }
-  // })
-
-
 
   // END: рамка-выделение
+
+  // START: зум для действий
+  const ACTIVE_ZOOM = 1.3
+
+  const handleMouseDownZoom = evt => {
+    if (currentZoom.value < ACTIVE_ZOOM) {
+      currentZoom.value = ACTIVE_ZOOM
+    }
+  }
+
+  const activeZoomListenersAdd = () => {
+    nextTick(() => {
+      schemeMainRef.value.addEventListener('mousedown', handleMouseDownZoom)
+      schemeMainRef.value.addEventListener('touchstart', handleMouseDownZoom)
+    })
+  }
+
+  const activeZoomListenersRemove = () => {
+    schemeMainRef.value.removeEventListener('mousedown', handleMouseDownZoom)
+    schemeMainRef.value.removeEventListener('touchstart', handleMouseDownZoom)
+  }
+  // END: зум для действий
+
 
   onMounted(() => {
     handleResize()
@@ -867,12 +869,14 @@
     window.addEventListener('resize', handleResize)
     unselectionListenersAdd()
     grabbingListenersAdd()
+    activeZoomListenersAdd()
   })
 
-  onUnmounted(() => {
+  onBeforeUnmount(() => {
     window.removeEventListener('resize', handleResize)
     unselectionListenersRemove()
     grabbingListenersRemove()
+    activeZoomListenersRemove()
   })
 
   // Пробрасываем константы в компонент через provide
@@ -881,8 +885,12 @@
 
 <template>
   <div ref="schemeMainRef" class="scheme_main">
+    <br>
+    {{ currentZoom }}
+    {{ stageConfig }}
+    {{ getStageConfig }}
     <!-- FIXME: временно -->
-    <button @click="isDraggable = !isDraggable">isDraggable: {{ isDraggable }}</button>
+    <button @click="isDraggableMode = !isDraggableMode">isDraggableMode: {{ isDraggableMode }}</button>
     <v-stage
       ref="stageRef"
       class="stageRef"
