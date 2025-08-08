@@ -599,9 +599,64 @@
     schemeMainRef.value.style.cursor = 'default'
   }
 
+  // START: Режим перетягивания на shift / выделение без shift
+  const isShiftKey = ref(false)
+  const isMouseMiddle = ref(false)
 
-  // START: рамка-выделение
+  const isModeGrabbing = computed(() => isShiftKey.value || isMouseMiddle.value)
 
+  watch(isModeGrabbing, val => {
+    if (val) {
+      isDraggable.value = true
+    } else {
+      isDraggable.value = false
+    }
+  }, { immediate: true })
+
+
+  const handleGrabbingKeyDown = evt => {
+    if (evt.key === 'Shift') {
+      isShiftKey.value = true
+    }
+  }
+
+  const handleGrabbingKeyUp = evt => {
+    if (evt.key === 'Shift') {
+      isShiftKey.value = false
+    }
+  }
+
+  const handleGrabbingMouseDown = evt => {
+    if (evt.button === 1) {
+      isMouseMiddle.value = true
+    }
+  }
+
+    const handleGrabbingMouseUp = evt => {
+    if (evt.button === 1) {
+      isMouseMiddle.value = false
+    }
+  }
+
+  const grabbingListenersAdd = () => {
+    document.addEventListener('keydown', handleGrabbingKeyDown)
+    document.addEventListener('keyup', handleGrabbingKeyUp)
+    document.addEventListener('mousedown', handleGrabbingMouseDown)
+    document.addEventListener('mouseup', handleGrabbingMouseUp)
+  }
+
+  const grabbingListenersRemove = () => {
+    document.removeEventListener('keydown', handleGrabbingKeyDown)
+    document.removeEventListener('keyup', handleGrabbingKeyUp)
+    document.removeEventListener('mousedown', handleGrabbingMouseDown)
+    document.removeEventListener('mouseup', handleGrabbingMouseUp)
+  }
+
+
+  // END: Режим перетягивания на shift / выделение без shift
+
+
+  // START: рамка-выделение, режимы перетягивания/выделения
   const isUnselectionMode = ref(false)
 
   const currentSelectedSeats = ref({})
@@ -716,7 +771,15 @@
   };
 
   const onMouseUp = (evt) => {
-    if (isDraggable.value || !selectionRect.value.visible) return;
+    if (isDraggable.value) {
+      selectionRect.value.visible = false
+
+      return
+    }
+
+    if (!selectionRect.value.visible) {
+      return
+    }
 
     if (isUnselectionMode.value) {
       const oldSelectedSeats = {...seatsState.value.selectedSeats}
@@ -803,11 +866,13 @@
 
     window.addEventListener('resize', handleResize)
     unselectionListenersAdd()
+    grabbingListenersAdd()
   })
 
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
     unselectionListenersRemove()
+    grabbingListenersRemove()
   })
 
   // Пробрасываем константы в компонент через provide
