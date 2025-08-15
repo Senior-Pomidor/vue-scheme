@@ -23,6 +23,7 @@
 // TODO: заменить на Map() объекты с местами (хз, проверим надо ли, по скорости вроде не выиграем, доработки)
 // TODO: при отмене ctrl+z обновлять только часть снимка (доработки)
 
+  import SchemeModesControls from './SchemeModesControls.vue'
 
   import { useUndoRedo } from '@/composables/useUndoRedo'
   import {throttle} from '@/utils/throttle'
@@ -58,8 +59,8 @@
   const SNAPSHOT_PADDING = 40
 
   // Режим 2 - перетягивание вне схемы, выбор ведением
-  const isDraggableMode = ref(true)
-  const isMouseoverSelectingMode = ref(false)
+  const isDraggableMode = ref(false)
+  const isMouseoverSelectingMode = ref(true)
   const isMouseoverSelecting = ref(false)
   const currentPlaceId = ref(null)
 
@@ -680,6 +681,10 @@
     isDraggable.value = true
     currentPlaceId.value = null
 
+    if (!Object.keys(currentSelectedSeats.value).length && !Object.keys(currentUnselectedSeats.value).length) {
+      return
+    }
+
     const oldSelectedSeats = {...seatsState.value.selectedSeats}
 
     for (const id in currentUnselectedSeats.value) {
@@ -1012,28 +1017,6 @@
 
 <template>
   <div ref="schemeMainRef" class="scheme_main">
-    <br>
-    {{ currentZoom }}
-    {{ stageConfig }}
-    {{ getStageConfig }} <br>
-    {{ currentPlaceId }}
-    <!-- FIXME: временно --> <br>
-    <button
-      :style="{
-        border: isDraggableMode ? '2px solid green' : '2px solid black',
-      }"
-      @click="isDraggableMode = true; isMouseoverSelectingMode = false"
-    >
-      isDraggableMode: {{ isDraggableMode }}
-    </button>
-    <button
-      :style="{
-        border: isMouseoverSelectingMode ? '2px solid green' : '2px solid black',
-      }"
-      @click="isMouseoverSelectingMode = true; isDraggableMode = false"
-    >
-      isMouseoverSelectingMode: {{ isMouseoverSelectingMode }}
-    </button>
     <v-stage
       ref="stageRef"
       class="stageRef"
@@ -1073,10 +1056,13 @@
         <v-rect :config="selectionRectProps" />
       </v-layer>
     </v-stage>
-     <br>
-    {{ isMouseoverSelectingMode }} <br>
-    {{ isMouseoverSelecting }} <br>
-    {{ isDraggable }}
+
+    <SchemeModesControls
+      :is-grab-mode="isMouseoverSelectingMode"
+      :is-cursor-mode="isDraggableMode"
+      @click-grab="isMouseoverSelectingMode = true; isDraggableMode = false"
+      @click-cursor="isDraggableMode = true; isMouseoverSelectingMode = false"
+    />
   </div>
 </template>
 
