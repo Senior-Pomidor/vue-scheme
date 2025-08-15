@@ -57,8 +57,23 @@
   // Паддинг для снимка чтобы не обрезался по краям
   const SNAPSHOT_PADDING = 40
 
-  // режим перетягивание/рисование рамки выделения
+  // Режим 2 - перетягивание вне схемы, выбор ведением
   const isDraggableMode = ref(true)
+  const isMouseoverSelectingMode = ref(false)
+  const isMouseoverSelecting = ref(false)
+  const currentPlaceId = ref(null)
+
+  // FIXME: костыль для корректной смены isDraggable при смене режимов
+  watch([isDraggableMode, isMouseoverSelectingMode], ([val1, val2]) => {
+    if (val2 && !val1) {
+      isDraggable.value = true
+    } else {
+      isDraggable.value = false
+    }
+  })
+
+  // режим перетягивание/рисование рамки выделения
+  const isDraggable = ref(true)
   const isDragging = ref(false)
   const currentZoom = ref(1.3)
   const visibleSeatIds = ref([]) // ID видимых мест
@@ -85,7 +100,7 @@
   const stageConfig = reactive({
     width: 1000,
     height: 700,
-    // draggable: isDraggableMode.value,
+    // draggable: isDraggable.value,
     // scaleX: currentZoom.value,
     // scaleY: currentZoom.value,
   })
@@ -95,7 +110,7 @@
       ...stageConfig,
       scaleX: currentZoom.value,
       scaleY: currentZoom.value,
-      draggable: isDraggableMode.value,
+      draggable: isDraggable.value,
     }
   })
 
@@ -404,7 +419,7 @@
 
   // Обработчики событий
   const onDragStart = () => {
-    if (!isDraggableMode) {
+    if (!isDraggable) {
       return
     }
 
@@ -417,7 +432,7 @@
   }
 
   const onDragEnd = () => {
-    if (!isDraggableMode) {
+    if (!isDraggable) {
       return
     }
 
@@ -599,6 +614,106 @@
     schemeMainRef.value.style.cursor = 'default'
   }
 
+  // Для выбора ведением
+  const onSeatMouseDown = (placeId, evt) => {
+    if (!isMouseoverSelectingMode.value) {
+      return
+    }
+
+    isMouseoverSelecting.value = true
+    isDraggable.value = false
+
+    if (seatsState.value.selectedSeats[placeId]) {
+      currentUnselectedSeats.value[placeId] = actualSeats.value[placeId]
+    } else {
+      currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
+    }
+
+    currentPlaceId.value = String(placeId)
+  }
+
+  // Для выбора ведением
+
+  const handleMouseMoveForMouseOverMode = () => {
+    if (!isMouseoverSelectingMode.value || !isMouseoverSelecting.value) return;
+
+    const stageNode = stageRef.value.getNode();
+    const pointerPos = stageNode.getPointerPosition();
+
+    if (!pointerPos) return;
+
+    const node = stageNode.getIntersection(pointerPos);
+
+    if (node?.name() === 'shape') {
+      const placeId = node.id();
+
+      if (placeId === currentPlaceId.value) {
+        return
+      }
+
+      if (seatsState.value.selectedSeats[placeId]) {
+        if (currentUnselectedSeats.value[placeId]) {
+          delete currentUnselectedSeats.value[placeId]
+        } else {
+          currentUnselectedSeats.value[placeId] = actualSeats.value[placeId]
+        }
+      } else {
+        if (currentSelectedSeats.value[placeId]) {
+          delete currentSelectedSeats.value[placeId]
+        } else {
+          currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
+        }
+      }
+
+      currentPlaceId.value = placeId
+    } else {
+      currentPlaceId.value = null
+    }
+  };
+
+  const handleMouseUpForMouseOverMode = () => {
+    if (!isMouseoverSelectingMode.value) {
+      return
+    }
+
+    isMouseoverSelecting.value = false
+    isDraggable.value = true
+    currentPlaceId.value = null
+
+    const oldSelectedSeats = {...seatsState.value.selectedSeats}
+
+    for (const id in currentUnselectedSeats.value) {
+      delete oldSelectedSeats[id]
+    }
+
+      // seatsState.value.selectedSeats = {
+      //   ...oldSelectedSeats,
+      // }
+    // } else {
+    seatsState.value.selectedSeats = {
+      ...oldSelectedSeats,
+      ...currentSelectedSeats.value,
+    }
+    // }
+
+    StateHistoryManager.saveState(seatsState.value)
+    currentSelectedSeats.value = {}
+    currentUnselectedSeats.value = {}
+
+    // FIXME: заменить на перерисовку области, а не всего снимка
+    createFullSnapshot()
+  }
+
+  const addEventListenersForMousOverMode = () => {
+    window.addEventListener('mousemove', handleMouseMoveForMouseOverMode);
+    window.addEventListener('mouseup', handleMouseUpForMouseOverMode);
+  }
+
+  const removeEventListenersForMousOverMode = () => {
+    window.removeEventListener('mousemove', handleMouseMoveForMouseOverMode);
+    window.removeEventListener('mouseup', handleMouseUpForMouseOverMode);
+  }
+
   // START: Режим перетягивания на shift / выделение без shift
   const isShiftKey = ref(false)
   const isMouseMiddle = ref(false)
@@ -606,10 +721,10 @@
   const isModeGrabbing = computed(() => isShiftKey.value || isMouseMiddle.value)
 
   watch(isModeGrabbing, val => {
-    if (val) {
-      isDraggableMode.value = true
-    } else {
-      isDraggableMode.value = false
+    if (val && isDraggableMode.value) {
+      isDraggable.value = true
+    } else if (!val && isDraggableMode.value) {
+      isDraggable.value = false
     }
   }, { immediate: true })
 
@@ -694,7 +809,10 @@
 
 
   const onMouseDown = (evt) => {
-    if (isDraggableMode.value) return;
+    if (!isDraggableMode.value || !visibleSeatIds.value.length) {
+      return
+    }
+    if (isDraggable.value) return;
 
     const stageNode = stageRef.value.getNode();
     const pos = getRelativePointerPosition(stageNode);
@@ -710,7 +828,8 @@
   };
 
   const onMouseMove = (evt) => {
-    if (isDraggableMode.value || !selectionRect.value.visible) return;
+    if (!isDraggableMode.value) return;
+    if (isDraggable.value || !selectionRect.value.visible) return;
 
     const stageNode = stageRef.value.getNode();
     const pos = getRelativePointerPosition(stageNode);
@@ -732,7 +851,7 @@
     const selectedSeats = {};
 
     // Используем наш spatialIndex для поиска пересечений
-    const candidateSeats = spatialIndex.search({
+    const candidateSeats = spatialIndex?.search({
       minX: box.x,
       minY: box.y,
       maxX: box.x + box.width,
@@ -770,8 +889,13 @@
           rect1.y + rect1.height > rect2.y;
   };
 
+
   const onMouseUp = (evt) => {
-    if (isDraggableMode.value) {
+    if (!isDraggableMode.value) {
+      return
+    }
+
+    if (isDraggable.value) {
       selectionRect.value.visible = false
 
       return
@@ -862,7 +986,6 @@
   }
   // END: зум для действий
 
-
   onMounted(() => {
     handleResize()
 
@@ -870,6 +993,8 @@
     unselectionListenersAdd()
     grabbingListenersAdd()
     activeZoomListenersAdd()
+
+    addEventListenersForMousOverMode()
   })
 
   onBeforeUnmount(() => {
@@ -877,6 +1002,8 @@
     unselectionListenersRemove()
     grabbingListenersRemove()
     activeZoomListenersRemove()
+
+    removeEventListenersForMousOverMode()
   })
 
   // Пробрасываем константы в компонент через provide
@@ -888,9 +1015,25 @@
     <br>
     {{ currentZoom }}
     {{ stageConfig }}
-    {{ getStageConfig }}
-    <!-- FIXME: временно -->
-    <button @click="isDraggableMode = !isDraggableMode">isDraggableMode: {{ isDraggableMode }}</button>
+    {{ getStageConfig }} <br>
+    {{ currentPlaceId }}
+    <!-- FIXME: временно --> <br>
+    <button
+      :style="{
+        border: isDraggableMode ? '2px solid green' : '2px solid black',
+      }"
+      @click="isDraggableMode = true; isMouseoverSelectingMode = false"
+    >
+      isDraggableMode: {{ isDraggableMode }}
+    </button>
+    <button
+      :style="{
+        border: isMouseoverSelectingMode ? '2px solid green' : '2px solid black',
+      }"
+      @click="isMouseoverSelectingMode = true; isDraggableMode = false"
+    >
+      isMouseoverSelectingMode: {{ isMouseoverSelectingMode }}
+    </button>
     <v-stage
       ref="stageRef"
       class="stageRef"
@@ -916,9 +1059,12 @@
           :seat="actualSeats[id]"
           :selected="!!seatsState.selectedSeats[id] || Boolean(currentSelectedSeats[id])"
           :unselected="!!currentUnselectedSeats[id]"
+          :is-selection-mode="isMouseoverSelectingMode"
           @click="onSeatClick"
           @mouseenter="onMouseEnter"
           @mouseleave="onMouseLeave"
+          @mousedown="onSeatMouseDown(id, $event)"
+          @touchstart="onSeatMouseDown(id, $event)"
         />
       </v-layer>
 
@@ -927,6 +1073,10 @@
         <v-rect :config="selectionRectProps" />
       </v-layer>
     </v-stage>
+     <br>
+    {{ isMouseoverSelectingMode }} <br>
+    {{ isMouseoverSelecting }} <br>
+    {{ isDraggable }}
   </div>
 </template>
 

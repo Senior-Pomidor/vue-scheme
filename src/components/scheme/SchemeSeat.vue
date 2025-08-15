@@ -6,9 +6,10 @@
     hovered: Boolean,
     selected: Boolean,
     unselected: Boolean,
+    isSelectionMode: Boolean,
   })
 
-  const emit = defineEmits(['click', 'mouseenter', 'mouseleave'])
+  const emit = defineEmits(['click', 'mouseenter', 'mouseleave', 'mousedown', 'touchstart'])
 
   const SEAT_SIZE = inject('SEAT_SIZE')
 
@@ -27,7 +28,7 @@
       stroke = stroke[0]
     }
 
-    if (isHovered.value || props.selected) {
+    if ((isHovered.value && !props.isSelectionMode) || props.selected) {
       fill = 'blue'
     }
 
@@ -83,7 +84,10 @@
 
   const onMouseEnter = () => {
     emit('mouseenter', props.seat.id)
-    isHovered.value = true
+
+    // if (!props.isSelectionMode) {
+      isHovered.value = true
+    // }
   }
 
   const onMouseLeave = () => {
@@ -94,12 +98,15 @@
 
 <template>
   {{ props.selected }}
+  {{ isHovered }}
   <v-rect
     :config="rectConfig"
     @click="onClick"
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
     @touchend="onClick"
+    @mousedown="emit('mousedown', $event)"
+    @touchstart="emit('touchstart', $event)"
   />
   <v-text :config="seatTextConfig" />
   <v-text :config="rowTextConfig" />
