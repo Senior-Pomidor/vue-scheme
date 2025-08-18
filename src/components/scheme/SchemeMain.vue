@@ -16,12 +16,13 @@
 // TODO: переключение режимов перетягивание + ведение + рамка по шифту / перетягивание + рамка по шифту
 // TODO: причесать выделение/развыделение
 // TODO: рефакторинг
-// TODO: zoom сделать плавным и в центр экрана или в курсор при клике
+// TODO: zoom сделать плавным и в центр экрана или в курсор при клике +
 
 // TODO: после обновления чанка обновлять только часть снимка, а не весь снимок (доработки)
 // TODO: после обновления чанка заменять только новые места, а не все (доработки)
 // TODO: заменить на Map() объекты с местами (хз, проверим надо ли, по скорости вроде не выиграем, доработки)
 // TODO: при отмене ctrl+z обновлять только часть снимка (доработки)
+// TODO: установить мин макс зум
 
   import SchemeModesControls from './SchemeModesControls.vue'
 
@@ -418,6 +419,11 @@
     visibleSeatIds.value = visibleItems.map(item => item.id)
   }
 
+  // Throttle-обертка для пересчета видимых мест при частых изменениях зума
+  const updateVisibleSeatsThrottled = throttle(() => {
+    updateVisibleSeats()
+  }, 16.7)
+
   // Обработчики событий
   const onDragStart = () => {
     if (!isDraggable) {
@@ -443,21 +449,64 @@
     updateVisibleSeats()
   }
 
-  const handleZoom = newZoom => {
-    currentZoom.value = newZoom
-    stageConfig.scaleX = newZoom
-    stageConfig.scaleY = newZoom
+  const handleZoom = evt => {
+    evt.preventDefault();
 
-    if (newZoom > SNAPSHOT_ZOOM_THRESHOLD) {
-      snapshotLayerRef.value.getNode().hide()
-      objectsLayerRef.value.getNode().show()
-    } else if (isDragging.value) {
-      snapshotLayerRef.value.getNode().show()
-      objectsLayerRef.value.getNode().hide()
+    if (!stageRef.value) return;
+
+    const stage = stageRef.value.getNode();
+    const oldZoom = currentZoom.value;
+    const zoomFactor = evt.deltaY > 0 ? 0.95 : 1.05;
+    const newZoom = Math.min(Math.max(oldZoom * zoomFactor, 0.1), 20);
+
+    const pointerPos = stage.getPointerPosition();
+
+    // Если курсор над сценой - зум в точку курсора
+    if (pointerPos) {
+      const virtualPoint = {
+        x: (pointerPos.x - stage.x()) / oldZoom,
+        y: (pointerPos.y - stage.y()) / oldZoom
+      };
+
+      const newX = pointerPos.x - virtualPoint.x * newZoom;
+      const newY = pointerPos.y - virtualPoint.y * newZoom;
+
+      stage.x(newX);
+      stage.y(newY);
+    } else {
+      // Если курсор вне сцены - зум в центр
+      const center = {
+        x: stage.width() / 2,
+        y: stage.height() / 2
+      };
+
+      const virtualCenter = {
+        x: (center.x - stage.x()) / oldZoom,
+        y: (center.y - stage.y()) / oldZoom
+      };
+
+      const newX = center.x - virtualCenter.x * newZoom;
+      const newY = center.y - virtualCenter.y * newZoom;
+
+      stage.x(newX);
+      stage.y(newY);
     }
 
-    updateVisibleSeats()
-  }
+    // Ставим масштаб напрямую на сцену, чтобы сразу корректно посчитать viewport
+    stage.scale({ x: newZoom, y: newZoom });
+    currentZoom.value = newZoom;
+    stage.batchDraw();
+    updateVisibleSeatsThrottled();
+
+    // Переключаем режимы отображения
+    if (newZoom > SNAPSHOT_ZOOM_THRESHOLD) {
+      snapshotLayerRef.value.getNode().hide();
+      objectsLayerRef.value.getNode().show();
+    } else if (isDragging.value) {
+      snapshotLayerRef.value.getNode().show();
+      objectsLayerRef.value.getNode().hide();
+    }
+  };
 
   const onSeatClick = seat => {
     // FIXME: заменить на нормальное обновление состояния
@@ -558,6 +607,25 @@
   }
   // END: seats state
 
+
+  const centerStage = () => {
+    if (!stageRef.value || !schemeBounds.maxX) return;
+
+    const stage = stageRef.value.getNode();
+    const centerX = (schemeBounds.minX + schemeBounds.maxX) / 2;
+    const centerY = (schemeBounds.minY + schemeBounds.maxY) / 2;
+
+    const stageCenterX = stageConfig.width / 2;
+    const stageCenterY = stageConfig.height / 2;
+
+    // Вычисляем смещение для центрирования
+    stage.x(stageCenterX - centerX * currentZoom.value);
+    stage.y(stageCenterY - centerY * currentZoom.value);
+
+    stage.batchDraw();
+    updateVisibleSeats();
+  };
+
   watch(seats, (newSeats, oldSeats) => {
     console.log('watch seats', newSeats)
 
@@ -573,6 +641,8 @@
 
 
     initOffscreenCanvas()
+
+    centerStage()
 
     spatialIndex = buildSpatialIndex(seats.value, SEAT_SIZE)
 
@@ -971,23 +1041,68 @@
 
   // START: зум для действий
   const ACTIVE_ZOOM = 1.3
+  const ACTIVE_ZOOM_LISTENER_OPTS = { capture: true, passive: false }
 
   const handleMouseDownZoom = evt => {
-    if (currentZoom.value < ACTIVE_ZOOM) {
-      currentZoom.value = ACTIVE_ZOOM
+    if (!stageRef.value || currentZoom.value >= ACTIVE_ZOOM) {
+      return
+    }
+
+    const stage = stageRef.value.getNode();
+
+    // Обновляем позицию указателя для Konva до изменения зума
+    stage.setPointersPositions(evt);
+    const pointerPos = stage.getPointerPosition();
+
+    if (!pointerPos) {
+      return
+    }
+
+    const oldZoom = currentZoom.value
+    const newZoom = ACTIVE_ZOOM
+
+    // Позиция мыши в виртуальных координатах схемы
+    const virtualPoint = {
+      x: (pointerPos.x - stage.x()) / oldZoom,
+      y: (pointerPos.y - stage.y()) / oldZoom
+    };
+
+    // Новое смещение
+    const newX = pointerPos.x - virtualPoint.x * newZoom;
+    const newY = pointerPos.y - virtualPoint.y * newZoom;
+
+    stage.x(newX);
+    stage.y(newY);
+    currentZoom.value = newZoom;
+
+    updateVisibleSeats();
+
+    if (newZoom > SNAPSHOT_ZOOM_THRESHOLD) {
+      snapshotLayerRef.value.getNode().hide();
+      objectsLayerRef.value.getNode().show();
+    }
+
+    // Если включено перетягивание — запускаем drag вручную, чтобы избежать "скачка"
+    if (isDraggable.value) {
+      evt.preventDefault();
+      evt.stopPropagation();
+
+      // Снова фиксируем позицию указателя после трансформации и стартуем перетягивание
+      stage.setPointersPositions(evt);
+      stage.startDrag();
     }
   }
 
   const activeZoomListenersAdd = () => {
     nextTick(() => {
-      schemeMainRef.value.addEventListener('mousedown', handleMouseDownZoom)
-      schemeMainRef.value.addEventListener('touchstart', handleMouseDownZoom)
+      schemeMainRef.value.addEventListener('mousedown', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
+      schemeMainRef.value.addEventListener('touchstart', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
     })
   }
 
   const activeZoomListenersRemove = () => {
-    schemeMainRef.value.removeEventListener('mousedown', handleMouseDownZoom)
-    schemeMainRef.value.removeEventListener('touchstart', handleMouseDownZoom)
+    schemeMainRef.value.removeEventListener('mousedown', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
+    schemeMainRef.value.removeEventListener('touchstart', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
   }
   // END: зум для действий
 
@@ -1026,7 +1141,7 @@
       @mouseMove="throttle(onMouseMove, 16.7)()"
       @dragstart="onDragStart"
       @dragend="onDragEnd"
-      @wheel="evt => handleZoom(currentZoom * (evt.evt.deltaY > 0 ? 0.95 : 1.05))"
+      @wheel="evt => handleZoom(evt.evt)"
     >
       <!-- Слой снимка (для перемещения) -->
       <v-layer ref="snapshotLayerRef" :visible="false">
