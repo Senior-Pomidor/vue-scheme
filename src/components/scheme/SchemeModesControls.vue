@@ -1,17 +1,17 @@
 <script setup>
-  import IconCursor from '@/components/icons/IconCursor.vue';
-  import IconGrab from '@/components/icons/IconGrab.vue';
+  import IconCursor from '@/components/icons/IconCursor.vue'
+  import IconGrab from '@/components/icons/IconGrab.vue'
 
   const props = defineProps({
     isGrabMode: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     isCursorMode: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   })
 
   const emit = defineEmits(['clickGrab', 'clickCursor'])

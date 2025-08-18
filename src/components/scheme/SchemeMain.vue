@@ -25,11 +25,11 @@
 // TODO: при отмене ctrl+z обновлять только часть снимка (доработки)
 // TODO: установить мин макс зум
 
-  import SchemeModesControls from './SchemeModesControls.vue'
+  import { throttle } from '@/utils/throttle'
 
   import { useUndoRedo } from '@/composables/useUndoRedo'
-  import {throttle} from '@/utils/throttle'
 
+  import SchemeModesControls from './SchemeModesControls.vue'
   import SchemeSeat from './SchemeSeat.vue'
   import Konva from 'konva'
   import RBush from 'rbush'
@@ -109,60 +109,58 @@
     // scaleY: currentZoom.value,
   })
 
-  const getStageConfig = computed(() => {
-    return {
-      ...stageConfig,
-      scaleX: currentZoom.value,
-      scaleY: currentZoom.value,
-      draggable: isDraggable.value,
-    }
-  })
+  const getStageConfig = computed(() => ({
+    ...stageConfig,
+    scaleX: currentZoom.value,
+    scaleY: currentZoom.value,
+    draggable: isDraggable.value,
+  }))
 
   // Конфиг для прямоугольников мест
   const getRectConfig = seat => ({
-      x: seat.x,
-      y: seat.y,
-      width: SEAT_SIZE,
-      height: SEAT_SIZE,
-      fill: (() => {
-        let color = '#ccc'
+    x: seat.x,
+    y: seat.y,
+    width: SEAT_SIZE,
+    height: SEAT_SIZE,
+    fill: (() => {
+      let color = '#ccc'
 
-        if (seat.bg_color) {
-          if (Array.isArray(seat.bg_color)) {
-            color = seat.bg_color[0]
-          } else {
-            color = seat.bg_color
-          }
+      if (seat.bg_color) {
+        if (Array.isArray(seat.bg_color)) {
+          color = seat.bg_color[0]
+        } else {
+          color = seat.bg_color
         }
+      }
 
-        if (seatsState.value.selectedSeats[seat.id]) {
-          color = 'blue'
+      if (seatsState.value.selectedSeats[seat.id]) {
+        color = 'blue'
+      }
+
+      return color
+    })(),
+    stroke: (() => {
+      let color = '#000'
+
+      if (seat.border_color) {
+        if (Array.isArray(seat.border_color)) {
+          color = seat.border_color[0]
+        } else {
+          color = seat.border_color
         }
+      }
 
-        return color
-      })(),
-      stroke: (() => {
-        let color = '#000'
+      // FIXME: временно для выделения мест
+      if (fillRects.value[seat.id]) {
+        color = 'lightgreen'
+      }
 
-        if (seat.border_color) {
-          if (Array.isArray(seat.border_color)) {
-            color = seat.border_color[0]
-          } else {
-            color = seat.border_color
-          }
-        }
-
-        // FIXME: временно для выделения мест
-        if (fillRects.value[seat.id]) {
-          color = 'lightgreen'
-        }
-
-        return color
-      })(),
-      strokeWidth: 1,
-      cornerRadius: 4,
-      listening: true,
-    })
+      return color
+    })(),
+    strokeWidth: 1,
+    cornerRadius: 4,
+    listening: true,
+  })
 
 
   // Конфиг для текста мест
@@ -399,6 +397,7 @@
   const updateVisibleSeats = () => {
     if (currentZoom.value < MIN_OBJECTS_ZOOM) {
       visibleSeatIds.value = []
+
       return
     }
 
@@ -433,7 +432,7 @@
 
   // Обработчики событий
   const onDragStart = () => {
-    if (!isDraggable) {
+    if (!isDraggable.value) {
       return
     }
 
@@ -446,15 +445,17 @@
   }
 
   const onDragEnd = () => {
-    if (!isDraggable) {
+    if (!isDraggable.value) {
       return
     }
 
     isDragging.value = false
+
     if (currentZoom.value < MIN_OBJECTS_ZOOM) {
       snapshotLayerRef.value.getNode().show()
       objectsLayerRef.value.getNode().hide()
       visibleSeatIds.value = []
+
       return
     }
 
@@ -464,71 +465,74 @@
   }
 
   const handleZoom = evt => {
-    evt.preventDefault();
+    evt.preventDefault()
 
-    if (!stageRef.value) return;
+    if (!stageRef.value) {
+      return
+    }
 
-    const stage = stageRef.value.getNode();
-    const oldZoom = currentZoom.value;
-    const zoomFactor = evt.deltaY > 0 ? 0.95 : 1.05;
-    const newZoom = Math.min(Math.max(oldZoom * zoomFactor, 0.1), 20);
+    const stage = stageRef.value.getNode()
+    const oldZoom = currentZoom.value
+    const zoomFactor = evt.deltaY > 0 ? 0.95 : 1.05
+    const newZoom = Math.min(Math.max(oldZoom * zoomFactor, 0.1), 20)
 
-    const pointerPos = stage.getPointerPosition();
+    const pointerPos = stage.getPointerPosition()
 
     // Если курсор над сценой - зум в точку курсора
     if (pointerPos) {
       const virtualPoint = {
         x: (pointerPos.x - stage.x()) / oldZoom,
-        y: (pointerPos.y - stage.y()) / oldZoom
-      };
+        y: (pointerPos.y - stage.y()) / oldZoom,
+      }
 
-      const newX = pointerPos.x - virtualPoint.x * newZoom;
-      const newY = pointerPos.y - virtualPoint.y * newZoom;
+      const newX = pointerPos.x - virtualPoint.x * newZoom
+      const newY = pointerPos.y - virtualPoint.y * newZoom
 
-      stage.x(newX);
-      stage.y(newY);
+      stage.x(newX)
+      stage.y(newY)
     } else {
       // Если курсор вне сцены - зум в центр
       const center = {
         x: stage.width() / 2,
-        y: stage.height() / 2
-      };
+        y: stage.height() / 2,
+      }
 
       const virtualCenter = {
         x: (center.x - stage.x()) / oldZoom,
-        y: (center.y - stage.y()) / oldZoom
-      };
+        y: (center.y - stage.y()) / oldZoom,
+      }
 
-      const newX = center.x - virtualCenter.x * newZoom;
-      const newY = center.y - virtualCenter.y * newZoom;
+      const newX = center.x - virtualCenter.x * newZoom
+      const newY = center.y - virtualCenter.y * newZoom
 
-      stage.x(newX);
-      stage.y(newY);
+      stage.x(newX)
+      stage.y(newY)
     }
 
     // Ставим масштаб напрямую на сцену, чтобы сразу корректно посчитать viewport
-    stage.scale({ x: newZoom, y: newZoom });
-    currentZoom.value = newZoom;
-    stage.batchDraw();
+    stage.scale({ x: newZoom, y: newZoom })
+    currentZoom.value = newZoom
+    stage.batchDraw()
 
     if (newZoom < MIN_OBJECTS_ZOOM) {
       visibleSeatIds.value = []
-      snapshotLayerRef.value.getNode().show();
-      objectsLayerRef.value.getNode().hide();
-      return;
+      snapshotLayerRef.value.getNode().show()
+      objectsLayerRef.value.getNode().hide()
+
+      return
     }
 
-    updateVisibleSeatsThrottled();
+    updateVisibleSeatsThrottled()
 
     // Переключаем режимы отображения
     if (newZoom > SNAPSHOT_ZOOM_THRESHOLD) {
-      snapshotLayerRef.value.getNode().hide();
-      objectsLayerRef.value.getNode().show();
+      snapshotLayerRef.value.getNode().hide()
+      objectsLayerRef.value.getNode().show()
     } else if (isDragging.value) {
-      snapshotLayerRef.value.getNode().show();
-      objectsLayerRef.value.getNode().hide();
+      snapshotLayerRef.value.getNode().show()
+      objectsLayerRef.value.getNode().hide()
     }
-  };
+  }
 
   const onSeatClick = seat => {
     // FIXME: заменить на нормальное обновление состояния
@@ -631,22 +635,24 @@
 
 
   const centerStage = () => {
-    if (!stageRef.value || !schemeBounds.maxX) return;
+    if (!stageRef.value || !schemeBounds.maxX) {
+      return
+    }
 
-    const stage = stageRef.value.getNode();
-    const centerX = (schemeBounds.minX + schemeBounds.maxX) / 2;
-    const centerY = (schemeBounds.minY + schemeBounds.maxY) / 2;
+    const stage = stageRef.value.getNode()
+    const centerX = (schemeBounds.minX + schemeBounds.maxX) / 2
+    const centerY = (schemeBounds.minY + schemeBounds.maxY) / 2
 
-    const stageCenterX = stageConfig.width / 2;
-    const stageCenterY = stageConfig.height / 2;
+    const stageCenterX = stageConfig.width / 2
+    const stageCenterY = stageConfig.height / 2
 
     // Вычисляем смещение для центрирования
-    stage.x(stageCenterX - centerX * currentZoom.value);
-    stage.y(stageCenterY - centerY * currentZoom.value);
+    stage.x(stageCenterX - centerX * currentZoom.value)
+    stage.y(stageCenterY - centerY * currentZoom.value)
 
-    stage.batchDraw();
-    updateVisibleSeats();
-  };
+    stage.batchDraw()
+    updateVisibleSeats()
+  }
 
   watch(seats, (newSeats, oldSeats) => {
     console.log('watch seats', newSeats)
@@ -728,17 +734,21 @@
   // Для выбора ведением
 
   const handleMouseMoveForMouseOverMode = () => {
-    if (!isMouseoverSelectingMode.value || !isMouseoverSelecting.value) return;
+    if (!isMouseoverSelectingMode.value || !isMouseoverSelecting.value) {
+      return
+    }
 
-    const stageNode = stageRef.value.getNode();
-    const pointerPos = stageNode.getPointerPosition();
+    const stageNode = stageRef.value.getNode()
+    const pointerPos = stageNode.getPointerPosition()
 
-    if (!pointerPos) return;
+    if (!pointerPos) {
+      return
+    }
 
-    const node = stageNode.getIntersection(pointerPos);
+    const node = stageNode.getIntersection(pointerPos)
 
     if (node?.name() === 'shape') {
-      const placeId = node.id();
+      const placeId = node.id()
 
       if (placeId === currentPlaceId.value) {
         return
@@ -750,19 +760,17 @@
         } else {
           currentUnselectedSeats.value[placeId] = actualSeats.value[placeId]
         }
+      } else if (currentSelectedSeats.value[placeId]) {
+        delete currentSelectedSeats.value[placeId]
       } else {
-        if (currentSelectedSeats.value[placeId]) {
-          delete currentSelectedSeats.value[placeId]
-        } else {
-          currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
-        }
+        currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
       }
 
       currentPlaceId.value = placeId
     } else {
       currentPlaceId.value = null
     }
-  };
+  }
 
   const handleMouseUpForMouseOverMode = () => {
     if (!isMouseoverSelectingMode.value) {
@@ -777,15 +785,15 @@
       return
     }
 
-    const oldSelectedSeats = {...seatsState.value.selectedSeats}
+    const oldSelectedSeats = { ...seatsState.value.selectedSeats }
 
     for (const id in currentUnselectedSeats.value) {
       delete oldSelectedSeats[id]
     }
 
-      // seatsState.value.selectedSeats = {
-      //   ...oldSelectedSeats,
-      // }
+    // seatsState.value.selectedSeats = {
+    //   ...oldSelectedSeats,
+    // }
     // } else {
     seatsState.value.selectedSeats = {
       ...oldSelectedSeats,
@@ -802,13 +810,13 @@
   }
 
   const addEventListenersForMousOverMode = () => {
-    window.addEventListener('mousemove', handleMouseMoveForMouseOverMode);
-    window.addEventListener('mouseup', handleMouseUpForMouseOverMode);
+    window.addEventListener('mousemove', handleMouseMoveForMouseOverMode)
+    window.addEventListener('mouseup', handleMouseUpForMouseOverMode)
   }
 
   const removeEventListenersForMousOverMode = () => {
-    window.removeEventListener('mousemove', handleMouseMoveForMouseOverMode);
-    window.removeEventListener('mouseup', handleMouseUpForMouseOverMode);
+    window.removeEventListener('mousemove', handleMouseMoveForMouseOverMode)
+    window.removeEventListener('mouseup', handleMouseUpForMouseOverMode)
   }
 
   // START: Режим перетягивания на shift / выделение без shift
@@ -844,7 +852,7 @@
     }
   }
 
-    const handleGrabbingMouseUp = evt => {
+  const handleGrabbingMouseUp = evt => {
     if (evt.button === 1) {
       isMouseMiddle.value = false
     }
@@ -893,26 +901,35 @@
     // ref: selectionRectRef,
   }))
 
-  const getRelativePointerPosition = (stageNode) => {
-    if (!stageNode) return { x: 0, y: 0 };
+  const getRelativePointerPosition = stageNode => {
+    if (!stageNode) {
+      return { x: 0, y: 0 }
+    }
 
-    const pointerPos = stageNode.getPointerPosition();
-    if (!pointerPos) return { x: 0, y: 0 };
+    const pointerPos = stageNode.getPointerPosition()
+
+    if (!pointerPos) {
+      return { x: 0, y: 0 }
+    }
 
     // Правильное преобразование с учетом трансформации
-    const transform = stageNode.getAbsoluteTransform().copy();
-    return transform.invert().point(pointerPos);
-  };
+    const transform = stageNode.getAbsoluteTransform().copy()
+
+    return transform.invert().point(pointerPos)
+  }
 
 
-  const onMouseDown = (evt) => {
+  const onMouseDown = evt => {
     if (!isDraggableMode.value || !visibleSeatIds.value.length) {
       return
     }
-    if (isDraggable.value) return;
 
-    const stageNode = stageRef.value.getNode();
-    const pos = getRelativePointerPosition(stageNode);
+    if (isDraggable.value) {
+      return
+    }
+
+    const stageNode = stageRef.value.getNode()
+    const pos = getRelativePointerPosition(stageNode)
 
     selectionRect.value = {
       ...selectionRect.value,
@@ -921,31 +938,36 @@
       y1: pos.y,
       x2: pos.x,
       y2: pos.y,
-    };
-  };
+    }
+  }
 
-  const onMouseMove = (evt) => {
-    if (!isDraggableMode.value) return;
-    if (isDraggable.value || !selectionRect.value.visible) return;
+  const onMouseMove = evt => {
+    if (!isDraggableMode.value) {
+      return
+    }
 
-    const stageNode = stageRef.value.getNode();
-    const pos = getRelativePointerPosition(stageNode);
+    if (isDraggable.value || !selectionRect.value.visible) {
+      return
+    }
+
+    const stageNode = stageRef.value.getNode()
+    const pos = getRelativePointerPosition(stageNode)
 
     selectionRect.value = {
       ...selectionRect.value,
       x2: pos.x,
       y2: pos.y,
-    };
+    }
 
     const box = {
       x: Math.min(selectionRect.value.x1, selectionRect.value.x2),
       y: Math.min(selectionRect.value.y1, selectionRect.value.y2),
       width: Math.abs(selectionRect.value.x2 - selectionRect.value.x1),
       height: Math.abs(selectionRect.value.y2 - selectionRect.value.y1),
-    };
+    }
 
     // const ids = [];
-    const selectedSeats = {};
+    const selectedSeats = {}
 
     // Используем наш spatialIndex для поиска пересечений
     const candidateSeats = spatialIndex?.search({
@@ -953,7 +975,7 @@
       minY: box.y,
       maxX: box.x + box.width,
       maxY: box.y + box.height,
-    });
+    })
 
     // Проверяем точное пересечение
     candidateSeats.forEach(item => {
@@ -962,32 +984,30 @@
         y: actualSeats.value[item.id].y,
         width: SEAT_SIZE,
         height: SEAT_SIZE,
-      };
+      }
 
       if (rectanglesIntersect(box, seatRect)) {
         // ids.push(item.id);
-        selectedSeats[item.id] = actualSeats.value[item.id];
+        selectedSeats[item.id] = actualSeats.value[item.id]
       }
-    });
+    })
 
     if (isUnselectionMode.value) {
-      currentUnselectedSeats.value = {...selectedSeats}
+      currentUnselectedSeats.value = { ...selectedSeats }
     } else {
-      currentSelectedSeats.value = {...selectedSeats}
+      currentSelectedSeats.value = { ...selectedSeats }
     }
 
     // console.log("Selected IDs:", selectedSeats);
-  };
+  }
 
-  const rectanglesIntersect = (rect1, rect2) => {
-    return rect1.x < rect2.x + rect2.width &&
-          rect1.x + rect1.width > rect2.x &&
-          rect1.y < rect2.y + rect2.height &&
-          rect1.y + rect1.height > rect2.y;
-  };
+  const rectanglesIntersect = (rect1, rect2) => rect1.x < rect2.x + rect2.width &&
+    rect1.x + rect1.width > rect2.x &&
+    rect1.y < rect2.y + rect2.height &&
+    rect1.y + rect1.height > rect2.y
 
 
-  const onMouseUp = (evt) => {
+  const onMouseUp = evt => {
     if (!isDraggableMode.value) {
       return
     }
@@ -1003,7 +1023,7 @@
     }
 
     if (isUnselectionMode.value) {
-      const oldSelectedSeats = {...seatsState.value.selectedSeats}
+      const oldSelectedSeats = { ...seatsState.value.selectedSeats }
 
       for (const id in currentUnselectedSeats.value) {
         delete oldSelectedSeats[id]
@@ -1026,9 +1046,8 @@
     // FIXME: заменить на перерисовку области, а не всего снимка
     createFullSnapshot()
 
-    selectionRect.value.visible = false;
-  };
-
+    selectionRect.value.visible = false
+  }
 
 
   // развыделение
@@ -1070,11 +1089,11 @@
       return
     }
 
-    const stage = stageRef.value.getNode();
+    const stage = stageRef.value.getNode()
 
     // Обновляем позицию указателя для Konva до изменения зума
-    stage.setPointersPositions(evt);
-    const pointerPos = stage.getPointerPosition();
+    stage.setPointersPositions(evt)
+    const pointerPos = stage.getPointerPosition()
 
     if (!pointerPos) {
       return
@@ -1086,40 +1105,40 @@
     // Позиция мыши в виртуальных координатах схемы
     const virtualPoint = {
       x: (pointerPos.x - stage.x()) / oldZoom,
-      y: (pointerPos.y - stage.y()) / oldZoom
-    };
+      y: (pointerPos.y - stage.y()) / oldZoom,
+    }
 
     // Новое смещение
-    const newX = pointerPos.x - virtualPoint.x * newZoom;
-    const newY = pointerPos.y - virtualPoint.y * newZoom;
+    const newX = pointerPos.x - virtualPoint.x * newZoom
+    const newY = pointerPos.y - virtualPoint.y * newZoom
 
-    stage.x(newX);
-    stage.y(newY);
+    stage.x(newX)
+    stage.y(newY)
     // Ставим масштаб напрямую
-    stage.scale({ x: newZoom, y: newZoom });
-    currentZoom.value = newZoom;
+    stage.scale({ x: newZoom, y: newZoom })
+    currentZoom.value = newZoom
 
     if (newZoom < MIN_OBJECTS_ZOOM) {
       visibleSeatIds.value = []
-      snapshotLayerRef.value.getNode().show();
-      objectsLayerRef.value.getNode().hide();
+      snapshotLayerRef.value.getNode().show()
+      objectsLayerRef.value.getNode().hide()
     } else {
-      updateVisibleSeats();
+      updateVisibleSeats()
     }
 
     if (newZoom > SNAPSHOT_ZOOM_THRESHOLD) {
-      snapshotLayerRef.value.getNode().hide();
-      objectsLayerRef.value.getNode().show();
+      snapshotLayerRef.value.getNode().hide()
+      objectsLayerRef.value.getNode().show()
     }
 
     // Если включено перетягивание — запускаем drag вручную, чтобы избежать "скачка"
     if (isDraggable.value) {
-      evt.preventDefault();
-      evt.stopPropagation();
+      evt.preventDefault()
+      evt.stopPropagation()
 
       // Снова фиксируем позицию указателя после трансформации и стартуем перетягивание
-      stage.setPointersPositions(evt);
-      stage.startDrag();
+      stage.setPointersPositions(evt)
+      stage.startDrag()
     }
   }
 
@@ -1166,9 +1185,9 @@
       ref="stageRef"
       class="stageRef"
       :config="getStageConfig"
-      @mouseDown="onMouseDown"
-      @mouseUp="onMouseUp"
-      @mouseMove="throttle(onMouseMove, 16.7)()"
+      @mouse-down="onMouseDown"
+      @mouse-up="onMouseUp"
+      @mouse-move="throttle(onMouseMove, 16.7)()"
       @dragstart="onDragStart"
       @dragend="onDragEnd"
       @wheel="evt => handleZoom(evt.evt)"
