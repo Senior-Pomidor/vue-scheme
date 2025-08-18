@@ -28,7 +28,7 @@
       stroke = stroke[0]
     }
 
-    if ((isHovered.value && !props.isSelectionMode) || props.selected) {
+    if (isHovered.value && !props.isSelectionMode || props.selected) {
       fill = 'blue'
     }
 
@@ -86,7 +86,7 @@
     emit('mouseenter', props.seat.id)
 
     // if (!props.isSelectionMode) {
-      isHovered.value = true
+    isHovered.value = true
     // }
   }
 

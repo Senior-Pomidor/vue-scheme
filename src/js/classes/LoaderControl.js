@@ -1,4 +1,3 @@
-
 class LoaderControl {
   constructor(count, name = 'loaderControl') {
     this.count = count
@@ -46,6 +45,4 @@ class LoaderControl {
   }
 }
 
-export default (new LoaderControl(0, 'HallScheme'))
-
-
+export default new LoaderControl(0, 'HallScheme')
