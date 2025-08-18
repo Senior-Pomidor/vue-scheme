@@ -17,6 +17,7 @@
 // TODO: причесать выделение/развыделение
 // TODO: рефакторинг
 // TODO: zoom сделать плавным и в центр экрана или в курсор при клике +
+// TODO: минимальный зум для интерактивных мест
 
 // TODO: после обновления чанка обновлять только часть снимка, а не весь снимок (доработки)
 // TODO: после обновления чанка заменять только новые места, а не все (доработки)
@@ -51,6 +52,7 @@
   const SNAPSHOT_ZOOM_THRESHOLD = 4 // Порог переключения на снимок
   const SEAT_SIZE = 20
   const SNAPSHOT_SCALE = 1 // Масштаб снимка
+  const MIN_OBJECTS_ZOOM = 0.5 // Ниже этого масштаба показываем только снимок
   // XXX: для лужников не увеличивать
   // у неё размеры {minX: 80, minY: 80, maxX: 12706, maxY: 9290}
   // максимальный размер канваса в хроме - 16 384 × 16 384
@@ -395,6 +397,11 @@
 
   // Обновление списка видимых мест
   const updateVisibleSeats = () => {
+    if (currentZoom.value < MIN_OBJECTS_ZOOM) {
+      visibleSeatIds.value = []
+      return
+    }
+
     if (!stageRef.value || !spatialIndex) {
       return
     }
@@ -444,6 +451,13 @@
     }
 
     isDragging.value = false
+    if (currentZoom.value < MIN_OBJECTS_ZOOM) {
+      snapshotLayerRef.value.getNode().show()
+      objectsLayerRef.value.getNode().hide()
+      visibleSeatIds.value = []
+      return
+    }
+
     snapshotLayerRef.value.getNode().hide()
     objectsLayerRef.value.getNode().show()
     updateVisibleSeats()
@@ -496,6 +510,14 @@
     stage.scale({ x: newZoom, y: newZoom });
     currentZoom.value = newZoom;
     stage.batchDraw();
+
+    if (newZoom < MIN_OBJECTS_ZOOM) {
+      visibleSeatIds.value = []
+      snapshotLayerRef.value.getNode().show();
+      objectsLayerRef.value.getNode().hide();
+      return;
+    }
+
     updateVisibleSeatsThrottled();
 
     // Переключаем режимы отображения
@@ -1073,9 +1095,17 @@
 
     stage.x(newX);
     stage.y(newY);
+    // Ставим масштаб напрямую
+    stage.scale({ x: newZoom, y: newZoom });
     currentZoom.value = newZoom;
 
-    updateVisibleSeats();
+    if (newZoom < MIN_OBJECTS_ZOOM) {
+      visibleSeatIds.value = []
+      snapshotLayerRef.value.getNode().show();
+      objectsLayerRef.value.getNode().hide();
+    } else {
+      updateVisibleSeats();
+    }
 
     if (newZoom > SNAPSHOT_ZOOM_THRESHOLD) {
       snapshotLayerRef.value.getNode().hide();
