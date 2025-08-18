@@ -48,7 +48,7 @@
     <section id="vue_hall_scheme_app"></section>
     <section id="vue_hall_scheme_app_2"></section>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="./src/main.js"></script>
     <!-- <script type="module" src="/dist/vue_hall_scheme_view.js"></script> -->
     <script type="module">
       import { VueHallSchemeView } from './src/main.js'
@@ -115,6 +115,8 @@
 
       confirmSelectionBtn.onclick = () => {
         const placesIds = vueHallSchemeApp.getSelectedSeats()
+
+        console.log('placesIds', placesIds)
 
         // HACK: имитация бэка
         // вместо этого нужно обновить места на бэке,
@@ -187,6 +189,11 @@
 
         vueHallSchemeApp.setSelectionFilters(schemeFilters)
       }
+
+    // резервация/разрезервация сразу после выбора
+      vueHallSchemeApp.on(vueHallSchemeApp.events.setSelectedSeats, ({ detail }) => {
+          console.log('setSelectedSeats', detail)
+      })
     </script>
   </body>
 </html>

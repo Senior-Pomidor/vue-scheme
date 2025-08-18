@@ -16,6 +16,7 @@ class HallSchemeView {
     }
 
     this.#appId = Date.now()
+
     this.events = {
       setSchemeConfig: `setSchemeConfig${this.#appId}`,
       setSchemeSeatsToApp: `setSchemeSeatsToApp${this.#appId}`,
@@ -29,6 +30,7 @@ class HallSchemeView {
     }
 
     this.selectedSeats = {}
+
     this.selectionFilters = {
       attrs: {},
       prices: {},
