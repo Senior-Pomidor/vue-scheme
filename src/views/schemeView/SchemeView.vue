@@ -1,7 +1,7 @@
 <script setup>
   // components
-  import SchemeMain from '@/components/scheme/SchemeMain.vue'
   import SchemeInfoPopup from '@/components/scheme/SchemeInfoPopup.vue'
+  import SchemeMain from '@/components/scheme/SchemeMain.vue'
 
   // vue
   import { inject } from 'vue'
@@ -13,10 +13,10 @@
     // 'clearSelectedSeats',
   ])
 
-  const schemeSeats = inject('schemeSeats')
-  const schemeSeatsChunk = inject('schemeSeatsChunk')
+  // const schemeSeats = inject('schemeSeats')
+  // const schemeSeatsChunk = inject('schemeSeatsChunk')
   const schemeConfig = inject('schemeConfig')
-  const selectionFilters = inject('selectionFilters')
+  // const selectionFilters = inject('selectionFilters')
 
   const changedSeatsStateHandler = state => {
     emit('changedSeatsState', state)
@@ -29,27 +29,27 @@
 
 <template>
   <div
-    class="schemeAdminView"
+    class="scheme_view"
     :style="{
       backgroundColor: schemeConfig.background_color || '#efefef'
     }"
   >
-    <SchemeInfoPopup/>
+    <SchemeInfoPopup />
 
-    <SchemeMain
-      class="schemeAdminView__scheme"
-      :seats="schemeSeats"
+    <!-- :seats="schemeSeats"
       :seats-chunk="schemeSeatsChunk"
       :config="schemeConfig"
-      :filters="selectionFilters"
+      :filters="selectionFilters" -->
+    <SchemeMain
+      class="scheme_view__scheme"
       @changed-seats-state="changedSeatsStateHandler"
       @unselect-seats="unselectSeatsHandler"
       @change-fullscreen-mode="emit('changeFullscreenMode')"
     />
-      <!-- @clear-selected-seats="emit('clearSelectedSeats')" -->
+    <!-- @clear-selected-seats="emit('clearSelectedSeats')" -->
   </div>
 </template>
 
 <style lang="less" scoped>
-@import url('./SchemeAdminView.less');
+@import url('./schemeView.less');
 </style>

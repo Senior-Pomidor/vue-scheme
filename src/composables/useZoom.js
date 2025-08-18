@@ -1,5 +1,6 @@
-import { ref, unref, onMounted } from 'vue'
 import { throttle } from '@/utils/throttle'
+
+import { ref, unref, onMounted } from 'vue'
 
 /**
  * @param { Object } options

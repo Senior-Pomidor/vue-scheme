@@ -7,6 +7,7 @@ function useSelectionElementsFromArea({
   selectionAttr,
 }) {
   const selectedElIds = ref({})
+
   return {
     selectedElIds, //
   }

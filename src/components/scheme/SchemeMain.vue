@@ -1,240 +1,610 @@
 <script setup>
-  // components
-  import SchemeSeat from '@/components/scheme/SchemeSeat.vue'
-  import VLoader from '@/components/ui/VLoader.vue'
 
-  // vue
-  import { ref, computed, onMounted, onUnmounted, watch, inject, nextTick } from 'vue'
+// XXX: на 45к мест перерисовка занимает 3 секунды
 
-  // utils
-  import { throttle } from '@/utils/throttle'
-  import { debounce } from '@/utils/debounce'
+// TODO: внешний вид мест привести к одному (текст, бг, границы) +
+// TODO: отрисовка на снимке с конфига места +
+// TODO: курсор на нужный блок (не будем менять) +
+// TODO: ховер +
+// TODO: причесать код, вынести лишний функционал (в след)
+// TODO: центрирование (в след задаче)
 
-  // composables
+
+// TODO: стейт хистори менеджер +
+// TODO: выделение мест рамкой +
+// TODO: рефакторинг по кодстайлу (поменять последний коммит)
+// TODO: переключение режимов перетягивание + ведение + рамка по шифту / перетягивание + рамка по шифту
+// TODO: причесать выделение/развыделение
+// TODO: рефакторинг
+// TODO: zoom сделать плавным и в центр экрана или в курсор при клике +
+// TODO: минимальный зум для интерактивных мест
+
+// TODO: после обновления чанка обновлять только часть снимка, а не весь снимок (доработки)
+// TODO: после обновления чанка заменять только новые места, а не все (доработки)
+// TODO: заменить на Map() объекты с местами (хз, проверим надо ли, по скорости вроде не выиграем, доработки)
+// TODO: при отмене ctrl+z обновлять только часть снимка (доработки)
+// TODO: установить мин макс зум
+
+  import SchemeModesControls from './SchemeModesControls.vue'
+
   import { useUndoRedo } from '@/composables/useUndoRedo'
-  import { useZoom } from '@/composables/useZoom'
+  import {throttle} from '@/utils/throttle'
 
-  const props = defineProps({
-    config: {
-      type: Object,
-      default: () => ({}),
-    },
+  import SchemeSeat from './SchemeSeat.vue'
+  import Konva from 'konva'
+  import RBush from 'rbush'
+  import { ref, reactive, onMounted, computed, watch, inject, provide, onBeforeUnmount, nextTick } from 'vue'
 
-    seats: {
-      type: Object,
-      default: () => ({}),
-    },
+  const seats = inject('schemeSeats')
+  const seatsChunk = inject('schemeSeatsChunk')
 
-    seatsChunk: {
-      type: Object,
-      default: () => ({}),
-    },
-
-    filters: {
-      type: Object,
-      default: () => ({}),
-    },
-  })
-  // const filters = {
-  //   attrs: {
-  //     active: 'true',
-  //   },
-  //   prices: {
-  //     min: 0,
-  //     max: 1000,
-  //   },
-  // }
-
-  const throttleFrequency = 16.7
-  const loading = inject('loading')
-
-  // места на схеме
-  const $schemePlaces = ref([])
-
-  // локальная копия мест
-  const localSeats = ref({})
-
-  // состояние мест на карте
-  const seatsState = ref({
-    selectedSeats: {},
-  })
-
-  // локальное хранилище отфильтрованных мест
-  const filteredSeats = ref({})
-
-  // функция фильтрации одного места
-  const filterSeat = (seat) => {
-    if (!Object.keys(props.filters).length) {
-      return true
-    }
-
-    for (const filter in props.filters) {
-      switch (filter) {
-        case 'attrs':
-          for (const attr in props.filters.attrs) {
-            if (Array.isArray(props.filters.attrs[attr])) {
-              if (props.filters.attrs[attr].length && !props.filters.attrs[attr].includes(seat[attr])) {
-                return false
-              }
-            } else if (typeof props.filters.attrs[attr] === 'object') {
-              // Если пустой объект, то не фильтруем по нему, иначе все места будут false
-              if (!Object.keys(props.filters.attrs[attr] || {}).length) {
-                return true
-              }
-
-              let hasValidOption = false
-              for (const key in props.filters.attrs[attr]) {
-                if (JSON.stringify(props.filters.attrs[attr][key]) === JSON.stringify(seat[attr][key])) {
-                  hasValidOption = true
-                  break
-                }
-              }
-              if (!hasValidOption) return false
-            } else if (JSON.stringify(props.filters.attrs[attr]) !== JSON.stringify(seat[attr])) {
-              return false
-            }
-          }
-          break
-
-        case 'prices':
-          if (props.filters.prices.min && seat.price < props.filters.prices.min
-            || props.filters.prices.max && seat.price > props.filters.prices.max) {
-            return false
-          }
-          break
-        default:
-          break
-      }
-    }
-
-    return true
-  }
-
-  // фильтрация всех мест
-  const filterAllSeats = () => {
-    filteredSeats.value = {}
-    for (const id in localSeats.value) {
-      if (filterSeat(localSeats.value[id])) {
-        filteredSeats.value[id] = localSeats.value[id]
-      }
-    }
-
-    // FIXME: костыль, оптимизировать
-    // чтобы не слетало выделение мест при смене филтьтров
-    nextTick(() => {
-      for (const id in seatsState.value.selectedSeats) {
-        const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-
-          if (seatElement) {
-            seatElement.classList.add('_selected')
-          }
-      }
-    })
-  }
-
-  // фильтрация только измененных мест
-  const filterSeatsChunk = (seatsChunk) => {
-    for (const id in seatsChunk) {
-      if (filterSeat(seatsChunk[id])) {
-        filteredSeats.value[id] = seatsChunk[id]
-      } else {
-        delete filteredSeats.value[id]
-      }
-    }
-  }
-
-  // наблюдение за обновлением всех мест
-  watch(() => props.seats, (newSeats) => {
-    localSeats.value = { ...newSeats }
-    filterAllSeats()
-  }, { deep: true, immediate: true })
-
-  // наблюдение за обновлением частичных мест
-  watch(() => props.seatsChunk, (newSeatsChunk) => {
-    if (!Object.keys(newSeatsChunk).length) return
-
-    // обновляем места в локальной копии
-    localSeats.value = {
-      ...localSeats.value,
-      ...newSeatsChunk
-    }
-
-    // фильтруем только измененные места
-    filterSeatsChunk(newSeatsChunk)
-  }, { deep: true })
-
-  // наблюдение за изменением фильтров
-  watch(() => props.filters, () => {
-    filterAllSeats()
-  }, { deep: true })
-
-  const getSeats = computed(() => localSeats.value)
-  const getQuotaSeats = computed(() => filteredSeats.value)
+  const actualSeats = ref({})
 
   const emit = defineEmits([
     'changedSeatsState',
-    'unselectSeats',
-    'changeFullscreenMode',
-    'selectSeats',
-    // 'clearSelectedSeats',
   ])
 
-  const elSvgMapTranslateCoords = ref({
-    x: 0,
-    y: 0,
+  let spatialIndex = null
+
+  // FIXME: временно для выделения мест
+  const fillRects = ref({})
+
+  const SNAPSHOT_ZOOM_THRESHOLD = 4 // Порог переключения на снимок
+  const SEAT_SIZE = 20
+  const SNAPSHOT_SCALE = 1 // Масштаб снимка
+  const MIN_OBJECTS_ZOOM = 0.5 // Ниже этого масштаба показываем только снимок
+  // XXX: для лужников не увеличивать
+  // у неё размеры {minX: 80, minY: 80, maxX: 12706, maxY: 9290}
+  // максимальный размер канваса в хроме - 16 384 × 16 384
+  // TODO: переделать на тайлы при возможности
+
+  // Паддинг для снимка чтобы не обрезался по краям
+  const SNAPSHOT_PADDING = 40
+
+  // Режим 2 - перетягивание вне схемы, выбор ведением
+  const isDraggableMode = ref(false)
+  const isMouseoverSelectingMode = ref(true)
+  const isMouseoverSelecting = ref(false)
+  const currentPlaceId = ref(null)
+
+  // FIXME: костыль для корректной смены isDraggable при смене режимов
+  watch([isDraggableMode, isMouseoverSelectingMode], ([val1, val2]) => {
+    if (val2 && !val1) {
+      isDraggable.value = true
+    } else {
+      isDraggable.value = false
+    }
   })
 
-  watch(elSvgMapTranslateCoords, newCoords => {
-    if (!newCoords) {
+  // режим перетягивание/рисование рамки выделения
+  const isDraggable = ref(true)
+  const isDragging = ref(false)
+  const currentZoom = ref(1.3)
+  const visibleSeatIds = ref([]) // ID видимых мест
+
+  const stageRef = ref(null)
+  const snapshotLayerRef = ref(null)
+  const objectsLayerRef = ref(null)
+  const snapshotImageRef = ref(null)
+
+  // Буферный канвас - снимок
+  const offscreenCanvas = ref(null)
+
+  const snapshotConfig = reactive({
+    image: null,
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    filters: [Konva.Filters.Sharpen],
+    sharpen: 1,
+  })
+
+  // Конфигурация сцены
+  const stageConfig = reactive({
+    width: 1000,
+    height: 700,
+    // draggable: isDraggable.value,
+    // scaleX: currentZoom.value,
+    // scaleY: currentZoom.value,
+  })
+
+  const getStageConfig = computed(() => {
+    return {
+      ...stageConfig,
+      scaleX: currentZoom.value,
+      scaleY: currentZoom.value,
+      draggable: isDraggable.value,
+    }
+  })
+
+  // Конфиг для прямоугольников мест
+  const getRectConfig = seat => ({
+      x: seat.x,
+      y: seat.y,
+      width: SEAT_SIZE,
+      height: SEAT_SIZE,
+      fill: (() => {
+        let color = '#ccc'
+
+        if (seat.bg_color) {
+          if (Array.isArray(seat.bg_color)) {
+            color = seat.bg_color[0]
+          } else {
+            color = seat.bg_color
+          }
+        }
+
+        if (seatsState.value.selectedSeats[seat.id]) {
+          color = 'blue'
+        }
+
+        return color
+      })(),
+      stroke: (() => {
+        let color = '#000'
+
+        if (seat.border_color) {
+          if (Array.isArray(seat.border_color)) {
+            color = seat.border_color[0]
+          } else {
+            color = seat.border_color
+          }
+        }
+
+        // FIXME: временно для выделения мест
+        if (fillRects.value[seat.id]) {
+          color = 'lightgreen'
+        }
+
+        return color
+      })(),
+      strokeWidth: 1,
+      cornerRadius: 4,
+      listening: true,
+    })
+
+
+  // Конфиг для текста мест
+  const getTextConfigSeat = seat => {
+    // HACK: для передачи параметров в нативную рисовалку
+    // offsetX нельзя, совпадает в параметрами в v-rect
+
+    const OFFSET_X = -2
+    const OFFSET_Y = -1
+
+    return {
+      OFFSET_X,
+      OFFSET_Y,
+      x: seat.x + OFFSET_X,
+      y: seat.y + OFFSET_Y,
+      width: SEAT_SIZE,
+      height: SEAT_SIZE,
+      text: seat.seat,
+      fontSize: 10,
+      fill: '#000',
+      align: 'right',
+      verticalAlign: 'bottom',
+      listening: false,
+    }
+  }
+
+  // Конфиг для текста мест
+  const getTextConfigRow = seat => {
+    // HACK: для передачи параметров в нативную рисовалку
+    // offsetX нельзя, совпадает в параметрами в v-rect
+
+    const OFFSET_X = 1
+    const OFFSET_Y = 2
+
+    return {
+      OFFSET_X,
+      OFFSET_Y,
+      x: seat.x + OFFSET_X,
+      y: seat.y + OFFSET_Y,
+      width: SEAT_SIZE,
+      height: SEAT_SIZE,
+      text: seat.row,
+      fontSize: 8,
+      fill: '#000',
+      align: 'start',
+      verticalAlign: 'top',
+      listening: false, // События обрабатываются прямоугольником
+    }
+  }
+
+  // Границы схемы
+  const schemeBounds = reactive({
+    minX: 0,
+    minY: 0,
+    maxX: 0,
+    maxY: 0,
+  })
+
+  // Рассчёт границ схемы
+  const calculateSchemeBounds = () => {
+    const seatsArray = Object.values(seats.value)
+
+    if (seatsArray.length === 0) {
+      schemeBounds.minX = 0
+      schemeBounds.minY = 0
+      schemeBounds.maxX = stageConfig.width
+      schemeBounds.maxY = stageConfig.height
+
       return
     }
 
-    // targetEl.style.transform = `translate(${currentX}px, ${currentY}px)`
+    schemeBounds.minX = Math.min(...seatsArray.map(s => s.x))
+    schemeBounds.minY = Math.min(...seatsArray.map(s => s.y))
+    schemeBounds.maxX = Math.max(...seatsArray.map(s => s.x + SEAT_SIZE))
+    schemeBounds.maxY = Math.max(...seatsArray.map(s => s.y + SEAT_SIZE))
+  }
 
 
-    elSvgMap.value.style.transform = `translate(${newCoords.x || '0'}px, ${newCoords.y || '0'}px)`
-    // elSvgMap.value.setAttribute('transform', `translate(${newCoords.x || '0'}, ${newCoords.y || '0'})`)
-  }, { deep: true })
+  // Отрисовка мест на снимке
+  const drawSeatOnBuffer = (ctx, seat, size) => {
+    const offsetX = seat.x - schemeBounds.minX + SNAPSHOT_PADDING
+    const offsetY = seat.y - schemeBounds.minY + SNAPSHOT_PADDING
 
-  // данные для мест на карте
-  // const mapPlaces = ref([])
+    // Учитываем масштаб снимка при отрисовке
+    const scaledSize = size * SNAPSHOT_SCALE
+    const scaledX = offsetX * SNAPSHOT_SCALE
+    const scaledY = offsetY * SNAPSHOT_SCALE
 
-  let isSvgMapWrapperListeners = false
-  // элемент свг карта
-  const elSvgMapWrapper = ref()
-  watch(elSvgMapWrapper, newVal => {
-    if (!newVal || isSvgMapWrapperListeners) {
+    const seatRectConfig = getRectConfig(seat)
+    const seatTextConfigSeat = getTextConfigSeat(seat)
+    const seatTextConfigRow = getTextConfigRow(seat)
+
+
+    ctx.fillStyle = seatRectConfig.fill
+    ctx.strokeStyle = seatRectConfig.stroke
+    ctx.lineWidth = Number(SNAPSHOT_SCALE) * seatRectConfig.strokeWidth
+
+    // Отрисовка места
+    ctx.beginPath()
+
+    ctx.roundRect(
+      scaledX,
+      scaledY,
+      scaledSize,
+      scaledSize,
+      [seatRectConfig.cornerRadius * SNAPSHOT_SCALE],
+    )
+
+    ctx.fill()
+    ctx.stroke()
+
+    // Отрисовка номера места
+    ctx.fillStyle = seatTextConfigSeat.fill
+    ctx.font = `${seatTextConfigSeat.fontSize * SNAPSHOT_SCALE}px Arial` // Увеличиваем размер шрифта
+    ctx.textAlign = seatTextConfigSeat.align
+    ctx.textBaseline = seatTextConfigSeat.verticalAlign
+
+    ctx.fillText(
+      seat.seat,
+      scaledX + scaledSize + seatTextConfigSeat.OFFSET_X * SNAPSHOT_SCALE,
+      scaledY + scaledSize + seatTextConfigSeat.OFFSET_Y * SNAPSHOT_SCALE,
+    )
+
+    // Отрисовка номера ряда
+    ctx.font = `${seatTextConfigRow.fontSize * SNAPSHOT_SCALE}px Arial` // Увеличиваем размер шрифта
+    ctx.textAlign = seatTextConfigRow.align
+    ctx.textBaseline = seatTextConfigRow.verticalAlign
+
+    ctx.fillText(
+      seat.row,
+      scaledX + seatTextConfigRow.OFFSET_X * SNAPSHOT_SCALE,
+      scaledY + seatTextConfigRow.OFFSET_Y * SNAPSHOT_SCALE,
+    )
+  }
+
+  // Построение пространственного индекса (R-tree)
+  const buildSpatialIndex = (seats, size) => {
+    const tree = new RBush()
+
+    const items = Object.values(seats).map(seat => ({
+      minX: seat.x,
+      minY: seat.y,
+      maxX: seat.x + size,
+      maxY: seat.y + size,
+      id: seat.id,
+    }))
+
+    tree.load(items)
+
+    return tree
+  }
+
+  // Обновление области снимка
+  const updateSnapshotArea = (seat, seats, offscreenCanvas, spatialIndex, size) => {
+    const ctx = offscreenCanvas.getContext('2d')
+    const padding = size
+
+    // Рассчёт области поиска в оригинальных координатах (без масштабирования)
+    const searchArea = {
+      minX: seat.x - padding,
+      minY: seat.y - padding,
+      maxX: seat.x + size + padding,
+      maxY: seat.y + size + padding,
+    }
+
+    // Поиск объектов в области (в оригинальных координатах)
+    const nearbySeats = spatialIndex.search(searchArea)
+
+    // Область для очистки в масштабированных координатах с учетом паддинга
+    const scaledUpdateArea = {
+      minX: (searchArea.minX - schemeBounds.minX + SNAPSHOT_PADDING) * SNAPSHOT_SCALE,
+      minY: (searchArea.minY - schemeBounds.minY + SNAPSHOT_PADDING) * SNAPSHOT_SCALE,
+      maxX: (searchArea.maxX - schemeBounds.minX + SNAPSHOT_PADDING) * SNAPSHOT_SCALE,
+      maxY: (searchArea.maxY - schemeBounds.minY + SNAPSHOT_PADDING) * SNAPSHOT_SCALE,
+    }
+
+    // Очистка области
+    ctx.clearRect(
+      scaledUpdateArea.minX,
+      scaledUpdateArea.minY,
+      scaledUpdateArea.maxX - scaledUpdateArea.minX,
+      scaledUpdateArea.maxY - scaledUpdateArea.minY,
+    )
+
+    // Перерисовка объектов в области
+    nearbySeats.forEach(({ id }) => {
+      drawSeatOnBuffer(ctx, seats[id], size)
+    })
+
+    return scaledUpdateArea
+  }
+
+
+  // Инициализация снимка
+  const initOffscreenCanvas = () => {
+    calculateSchemeBounds()
+
+    // Размеры с учетом паддинга
+    const width = (schemeBounds.maxX - schemeBounds.minX + SNAPSHOT_PADDING * 2) * SNAPSHOT_SCALE
+    const height = (schemeBounds.maxY - schemeBounds.minY + SNAPSHOT_PADDING * 2) * SNAPSHOT_SCALE
+
+    offscreenCanvas.value = document.createElement('canvas')
+    offscreenCanvas.value.width = width
+    offscreenCanvas.value.height = height
+
+    // Конфиг снимка с учетом паддинга
+    snapshotConfig.x = schemeBounds.minX - SNAPSHOT_PADDING
+    snapshotConfig.y = schemeBounds.minY - SNAPSHOT_PADDING
+    snapshotConfig.width = schemeBounds.maxX - schemeBounds.minX + SNAPSHOT_PADDING * 2
+    snapshotConfig.height = schemeBounds.maxY - schemeBounds.minY + SNAPSHOT_PADDING * 2
+  }
+
+
+  // Создание полного снимка
+  const createFullSnapshot = () => {
+    const ctx = offscreenCanvas.value.getContext('2d')
+    ctx.clearRect(0, 0, offscreenCanvas.value.width, offscreenCanvas.value.height)
+
+    Object.values(actualSeats.value).forEach(seat => {
+      drawSeatOnBuffer(ctx, seat, SEAT_SIZE)
+    })
+
+    // Обновление снимка
+    snapshotConfig.image = offscreenCanvas.value
+    snapshotImageRef.value.getNode().image(offscreenCanvas.value)
+
+    snapshotImageRef.value
+      .getNode()
+      .getLayer()
+      .batchDraw()
+  }
+
+  // Обновление списка видимых мест
+  const updateVisibleSeats = () => {
+    if (currentZoom.value < MIN_OBJECTS_ZOOM) {
+      visibleSeatIds.value = []
       return
     }
 
-    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
-      if (evt.button === 0) {
-        isMouseDown.value = true
-      }
+    if (!stageRef.value || !spatialIndex) {
+      return
+    }
+
+    const stage = stageRef.value.getNode()
+    const scale = stage.scaleX()
+
+    const viewport = {
+      x: -stage.x() / scale,
+      y: -stage.y() / scale,
+      width: stage.width() / scale,
+      height: stage.height() / scale,
+    }
+
+    const visibleItems = spatialIndex.search({
+      minX: viewport.x,
+      minY: viewport.y,
+      maxX: viewport.x + viewport.width,
+      maxY: viewport.y + viewport.height,
     })
 
-    elSvgMapWrapper.value.addEventListener('mousedown', evt => {
-      if (evt.button === 1) {
-        isMouseMiddle.value = true
-      }
-    })
-  }, { immediate: true })
+    visibleSeatIds.value = visibleItems.map(item => item.id)
+  }
+
+  // Throttle-обертка для пересчета видимых мест при частых изменениях зума
+  const updateVisibleSeatsThrottled = throttle(() => {
+    updateVisibleSeats()
+  }, 16.7)
+
+  // Обработчики событий
+  const onDragStart = () => {
+    if (!isDraggable) {
+      return
+    }
+
+    isDragging.value = true
+
+    if (currentZoom.value <= SNAPSHOT_ZOOM_THRESHOLD) {
+      snapshotLayerRef.value.getNode().show()
+      objectsLayerRef.value.getNode().hide()
+    }
+  }
+
+  const onDragEnd = () => {
+    if (!isDraggable) {
+      return
+    }
+
+    isDragging.value = false
+    if (currentZoom.value < MIN_OBJECTS_ZOOM) {
+      snapshotLayerRef.value.getNode().show()
+      objectsLayerRef.value.getNode().hide()
+      visibleSeatIds.value = []
+      return
+    }
+
+    snapshotLayerRef.value.getNode().hide()
+    objectsLayerRef.value.getNode().show()
+    updateVisibleSeats()
+  }
+
+  const handleZoom = evt => {
+    evt.preventDefault();
+
+    if (!stageRef.value) return;
+
+    const stage = stageRef.value.getNode();
+    const oldZoom = currentZoom.value;
+    const zoomFactor = evt.deltaY > 0 ? 0.95 : 1.05;
+    const newZoom = Math.min(Math.max(oldZoom * zoomFactor, 0.1), 20);
+
+    const pointerPos = stage.getPointerPosition();
+
+    // Если курсор над сценой - зум в точку курсора
+    if (pointerPos) {
+      const virtualPoint = {
+        x: (pointerPos.x - stage.x()) / oldZoom,
+        y: (pointerPos.y - stage.y()) / oldZoom
+      };
+
+      const newX = pointerPos.x - virtualPoint.x * newZoom;
+      const newY = pointerPos.y - virtualPoint.y * newZoom;
+
+      stage.x(newX);
+      stage.y(newY);
+    } else {
+      // Если курсор вне сцены - зум в центр
+      const center = {
+        x: stage.width() / 2,
+        y: stage.height() / 2
+      };
+
+      const virtualCenter = {
+        x: (center.x - stage.x()) / oldZoom,
+        y: (center.y - stage.y()) / oldZoom
+      };
+
+      const newX = center.x - virtualCenter.x * newZoom;
+      const newY = center.y - virtualCenter.y * newZoom;
+
+      stage.x(newX);
+      stage.y(newY);
+    }
+
+    // Ставим масштаб напрямую на сцену, чтобы сразу корректно посчитать viewport
+    stage.scale({ x: newZoom, y: newZoom });
+    currentZoom.value = newZoom;
+    stage.batchDraw();
+
+    if (newZoom < MIN_OBJECTS_ZOOM) {
+      visibleSeatIds.value = []
+      snapshotLayerRef.value.getNode().show();
+      objectsLayerRef.value.getNode().hide();
+      return;
+    }
+
+    updateVisibleSeatsThrottled();
+
+    // Переключаем режимы отображения
+    if (newZoom > SNAPSHOT_ZOOM_THRESHOLD) {
+      snapshotLayerRef.value.getNode().hide();
+      objectsLayerRef.value.getNode().show();
+    } else if (isDragging.value) {
+      snapshotLayerRef.value.getNode().show();
+      objectsLayerRef.value.getNode().hide();
+    }
+  };
+
+  const onSeatClick = seat => {
+    // FIXME: заменить на нормальное обновление состояния
+    // emit('changedSeatsState', {
+    //   [seat.id]: seat,
+    // })
+
+    toggleSeatSelect(seat.id)
+
+    StateHistoryManager.saveState(seatsState.value)
+
+    // seatsState.value.selectedSeats[seat.id] = seat
+
+    // FIXME: заменить на нормальное обновление состояния, тут для демо
+    // fillRects.value[seat.id] = true
+
+    // Обновление состояния места
+    // seatsStore.updateSeatStatus(seat.id, 'selected')
+
+    // Обновление UI в слое объектов
+    objectsLayerRef.value.getNode().clearCache()
+
+    // Частичное обновление снимка
+    updateSnapshotArea(
+      seat,
+      actualSeats.value,
+      offscreenCanvas.value,
+      spatialIndex,
+      SEAT_SIZE,
+    )
+
+    // Принудительное обновление снимка
+    snapshotImageRef.value.getNode().image(offscreenCanvas.value)
+
+    snapshotImageRef.value
+      .getNode()
+      .getLayer()
+      .batchDraw()
+  }
+
+  const schemeMainRef = ref(null)
+
+  // Реактивное обновление при изменении размеров окна
+  const handleResize = () => {
+    stageConfig.width = schemeMainRef.value?.offsetWidth
+    stageConfig.height = schemeMainRef.value?.offsetHeight
+
+    initOffscreenCanvas()
+    createFullSnapshot()
+    updateVisibleSeats()
+  }
 
 
+  // при выборе добавляем или удаляем место и индекс из seatsState
+  // отправляем событие наружу с местами
+  // при получении снаружи мест через замену целиком или через чанк, обновляем состояние с индексом
 
 
-  // элемент слой-обёртка мест на свг карте
-  const elSvgMap = ref()
-  // нарисованная область выделения
-  const elSelectionFrameRect = ref()
+  // START: seats state
+  const seatsState = ref({
+    selectedSeats: {},
+    // spatialIndex: null,
+  })
 
-  // текущие выделенные места
-  const currentSelectedSeats = ref({})
+  const resetSeatsState = () => {
+    seatsState.value = {
+      selectedSeats: {},
+    // spatialIndex: null,
+    }
+  }
 
-  // текущие места для снятия выделения
-  const currentUnSelectedSeats = ref({})
-
-  const openedSeats = ref({})
+  const {
+    StateHistoryManager,
+    undoLastAction,
+  } = useUndoRedo(seatsState, createFullSnapshot)
+  // FIXME: заменить на перерисовку области снимка с выделенными местами из предыдущего сохранения
 
   // возвращает формат идентичный seatsState
   const getSeatsState = computed(() => {
@@ -245,1028 +615,610 @@
   })
 
   watch(() => getSeatsState.value, newVal => {
+    console.log('getSeatsState.value : ', newVal)
+
     emit('changedSeatsState', newVal.value.selectedSeats)
   })
 
+  const toggleSeatSelect = id => {
+    if (seatsState.value.selectedSeats[id]) {
+      delete seatsState.value.selectedSeats[id]
+    } else {
+      seatsState.value.selectedSeats[id] = seats.value[id]
+    }
+  }
+  // END: seats state
 
-  const {
-    StateHistoryManager,
-    undoLastAction,
-  } = useUndoRedo(seatsState)
 
-  // Наблюдаем за изменениями выбранных мест и обновляем классы элементов
-  watch(() => seatsState.value.selectedSeats, (newSelectedSeats, oldSelectedSeats) => {
-    // Находим места, которые были выделены, но сейчас отменены
-    for (const id in oldSelectedSeats) {
-      if (!newSelectedSeats[id]) {
-        // Удаляем класс _selected у мест, которые более не выделены
-        const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-        if (seatElement) {
-          seatElement.classList.remove('_selected')
-        }
-      }
+  const centerStage = () => {
+    if (!stageRef.value || !schemeBounds.maxX) return;
+
+    const stage = stageRef.value.getNode();
+    const centerX = (schemeBounds.minX + schemeBounds.maxX) / 2;
+    const centerY = (schemeBounds.minY + schemeBounds.maxY) / 2;
+
+    const stageCenterX = stageConfig.width / 2;
+    const stageCenterY = stageConfig.height / 2;
+
+    // Вычисляем смещение для центрирования
+    stage.x(stageCenterX - centerX * currentZoom.value);
+    stage.y(stageCenterY - centerY * currentZoom.value);
+
+    stage.batchDraw();
+    updateVisibleSeats();
+  };
+
+  watch(seats, (newSeats, oldSeats) => {
+    console.log('watch seats', newSeats)
+
+    if (!newSeats) {
+      return
     }
 
-    // Находим новые выделенные места
-    for (const id in newSelectedSeats) {
-      if (!oldSelectedSeats[id]) {
-        // Добавляем класс _selected новым выделенным местам
-        const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-        if (seatElement) {
-          seatElement.classList.add('_selected')
-        }
-      }
-    }
+    actualSeats.value = newSeats
+
+    resetSeatsState()
+    StateHistoryManager.clearState()
+    StateHistoryManager.saveState(seatsState.value)
+
+
+    initOffscreenCanvas()
+
+    centerStage()
+
+    spatialIndex = buildSpatialIndex(seats.value, SEAT_SIZE)
+
+    createFullSnapshot()
+    updateVisibleSeats()
   }, { deep: true })
 
-  // настройки
-  const isShiftKey = ref(false)
-  const isSpaceKey = ref(false)
-  const isControlKey = ref(false)
-  const isMouseDown = ref(false)
-  const isMouseMiddle = ref(false)
+  watch(seatsChunk, newSeatsChunk => {
+    console.log('watch newSeatsChunk', newSeatsChunk)
 
-  // const isModeGrabbing = computed(() => isMouseDown.value && isSpaceKey.value || isMouseMiddle.value)
+    if (!newSeatsChunk) {
+      return
+    }
+
+    actualSeats.value = {
+      ...actualSeats.value,
+      ...newSeatsChunk,
+    }
+
+    resetSeatsState()
+
+    StateHistoryManager.clearState()
+    StateHistoryManager.saveState(seatsState.value)
+
+    // initOffscreenCanvas()
+
+    // spatialIndex = buildSpatialIndex(seats.value, SEAT_SIZE)
+    // Обновление UI в слое объектов
+    // objectsLayerRef.value.getNode().clearCache()
+    createFullSnapshot()
+    // updateVisibleSeats()
+  }, { deep: true })
+
+
+  const onMouseEnter = id => {
+    schemeMainRef.value.style.cursor = 'pointer'
+  }
+
+  const onMouseLeave = id => {
+    schemeMainRef.value.style.cursor = 'default'
+  }
+
+  // Для выбора ведением
+  const onSeatMouseDown = (placeId, evt) => {
+    if (!isMouseoverSelectingMode.value) {
+      return
+    }
+
+    isMouseoverSelecting.value = true
+    isDraggable.value = false
+
+    if (seatsState.value.selectedSeats[placeId]) {
+      currentUnselectedSeats.value[placeId] = actualSeats.value[placeId]
+    } else {
+      currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
+    }
+
+    currentPlaceId.value = String(placeId)
+  }
+
+  // Для выбора ведением
+
+  const handleMouseMoveForMouseOverMode = () => {
+    if (!isMouseoverSelectingMode.value || !isMouseoverSelecting.value) return;
+
+    const stageNode = stageRef.value.getNode();
+    const pointerPos = stageNode.getPointerPosition();
+
+    if (!pointerPos) return;
+
+    const node = stageNode.getIntersection(pointerPos);
+
+    if (node?.name() === 'shape') {
+      const placeId = node.id();
+
+      if (placeId === currentPlaceId.value) {
+        return
+      }
+
+      if (seatsState.value.selectedSeats[placeId]) {
+        if (currentUnselectedSeats.value[placeId]) {
+          delete currentUnselectedSeats.value[placeId]
+        } else {
+          currentUnselectedSeats.value[placeId] = actualSeats.value[placeId]
+        }
+      } else {
+        if (currentSelectedSeats.value[placeId]) {
+          delete currentSelectedSeats.value[placeId]
+        } else {
+          currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
+        }
+      }
+
+      currentPlaceId.value = placeId
+    } else {
+      currentPlaceId.value = null
+    }
+  };
+
+  const handleMouseUpForMouseOverMode = () => {
+    if (!isMouseoverSelectingMode.value) {
+      return
+    }
+
+    isMouseoverSelecting.value = false
+    isDraggable.value = true
+    currentPlaceId.value = null
+
+    if (!Object.keys(currentSelectedSeats.value).length && !Object.keys(currentUnselectedSeats.value).length) {
+      return
+    }
+
+    const oldSelectedSeats = {...seatsState.value.selectedSeats}
+
+    for (const id in currentUnselectedSeats.value) {
+      delete oldSelectedSeats[id]
+    }
+
+      // seatsState.value.selectedSeats = {
+      //   ...oldSelectedSeats,
+      // }
+    // } else {
+    seatsState.value.selectedSeats = {
+      ...oldSelectedSeats,
+      ...currentSelectedSeats.value,
+    }
+    // }
+
+    StateHistoryManager.saveState(seatsState.value)
+    currentSelectedSeats.value = {}
+    currentUnselectedSeats.value = {}
+
+    // FIXME: заменить на перерисовку области, а не всего снимка
+    createFullSnapshot()
+  }
+
+  const addEventListenersForMousOverMode = () => {
+    window.addEventListener('mousemove', handleMouseMoveForMouseOverMode);
+    window.addEventListener('mouseup', handleMouseUpForMouseOverMode);
+  }
+
+  const removeEventListenersForMousOverMode = () => {
+    window.removeEventListener('mousemove', handleMouseMoveForMouseOverMode);
+    window.removeEventListener('mouseup', handleMouseUpForMouseOverMode);
+  }
+
+  // START: Режим перетягивания на shift / выделение без shift
+  const isShiftKey = ref(false)
+  const isMouseMiddle = ref(false)
 
   const isModeGrabbing = computed(() => isShiftKey.value || isMouseMiddle.value)
 
-  const currentAction = ref('')
-  const currentActionNames = ref({
-    selection: 'Выделение мест',
-    unselection: 'Отмена выделения мест',
-    grabbing: 'Перемещение схемы',
-  })
-
-  // const clearSelectedSeats = () => {
-  //   currentSelectedSeats.value = {}
-  //   seatsState.value.selectedSeats = {}
-
-  //   StateHistoryManager.clearState()
-  //   StateHistoryManager.saveState(seatsState.value)
-  // }
-
-  watch(() => getSeats.value, newVal => {
-    // ??? Удаляем класс _selected у всех выбранных мест
-    // for (const id in seatsState.value.selectedSeats) {
-    //   const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-    //   if (seatElement) {
-    //     seatElement.classList.remove('_selected')
-    //   }
-    // }
-
-    // ??? Удаляем класс _unselected у всех мест с отменой выделения
-    // for (const id in currentUnSelectedSeats.value) {
-    //   const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-    //   if (seatElement) {
-    //     seatElement.classList.remove('_unselected')
-    //   }
-    // }
-
-    // currentSelectedSeats.value = {} ???
-    seatsState.value.selectedSeats = {}
-    // currentUnSelectedSeats.value = {} ???
-
-    StateHistoryManager.clearState()
-    StateHistoryManager.saveState(seatsState.value)
-
-    // clearSelectedSeats()
-  }, { deep: true })
-
-  const isModeUnSelection = computed(() => !isModeGrabbing.value && isControlKey.value)
-  const isModeSelection = computed(() => !isModeGrabbing.value && !isModeUnSelection.value)
-
-  // настройки рамки-выделения на схеме
-  // TODO: выделить selection/unselection mode в отдельную переменную
-  // чтобы изменение других модов не обновляло значение computed
-  const getSelectionRectSettings = computed(() => {
-    const fill = currentAction.value === 'unselection'
-      ? 'rgba(239, 89, 89, .26)'
-      : 'rgba(106, 229, 251, 0.34)'
-    const stroke = currentAction.value === 'unselection'
-      ? '#d00404'
-      : '#68aafb'
-
-    return {
-      fill,
-      stroke,
+  watch(isModeGrabbing, val => {
+    if (val && isDraggableMode.value) {
+      isDraggable.value = true
+    } else if (!val && isDraggableMode.value) {
+      isDraggable.value = false
     }
-  })
+  }, { immediate: true })
 
-  watch(() => getSelectionRectSettings.value, (newVal, oldVal) => {
-    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
-      elSelectionFrameRect.value.setAttribute('fill', newVal.fill)
-      elSelectionFrameRect.value.setAttribute('stroke', newVal.stroke)
+
+  const handleGrabbingKeyDown = evt => {
+    if (evt.key === 'Shift') {
+      isShiftKey.value = true
     }
+  }
+
+  const handleGrabbingKeyUp = evt => {
+    if (evt.key === 'Shift') {
+      isShiftKey.value = false
+    }
+  }
+
+  const handleGrabbingMouseDown = evt => {
+    if (evt.button === 1) {
+      isMouseMiddle.value = true
+    }
+  }
+
+    const handleGrabbingMouseUp = evt => {
+    if (evt.button === 1) {
+      isMouseMiddle.value = false
+    }
+  }
+
+  const grabbingListenersAdd = () => {
+    document.addEventListener('keydown', handleGrabbingKeyDown)
+    document.addEventListener('keyup', handleGrabbingKeyUp)
+    document.addEventListener('mousedown', handleGrabbingMouseDown)
+    document.addEventListener('mouseup', handleGrabbingMouseUp)
+  }
+
+  const grabbingListenersRemove = () => {
+    document.removeEventListener('keydown', handleGrabbingKeyDown)
+    document.removeEventListener('keyup', handleGrabbingKeyUp)
+    document.removeEventListener('mousedown', handleGrabbingMouseDown)
+    document.removeEventListener('mouseup', handleGrabbingMouseUp)
+  }
+
+
+  // END: Режим перетягивания на shift / выделение без shift
+
+
+  // START: рамка-выделение, режимы перетягивания/выделения
+  const isUnselectionMode = ref(false)
+
+  const currentSelectedSeats = ref({})
+
+  const selectionRect = ref({
+    fill: 'rgba(0,0,255,0.5)',
+    visible: false,
+    x1: 0,
+    y1: 0,
+    x2: 0,
+    y2: 0,
   })
 
-  const getGrabbingClass = computed(() => {
-    if (currentAction.value === 'grabbing') {
-      if (isMouseDown.value || isMouseMiddle.value) {
-        return '_grabbing'
+
+  const selectionRectProps = computed(() => ({
+    fill: selectionRect.value.fill,
+    visible: selectionRect.value.visible,
+    x: Math.min(selectionRect.value.x1, selectionRect.value.x2),
+    y: Math.min(selectionRect.value.y1, selectionRect.value.y2),
+    width: Math.abs(selectionRect.value.x2 - selectionRect.value.x1),
+    height: Math.abs(selectionRect.value.y2 - selectionRect.value.y1),
+    // ref: selectionRectRef,
+  }))
+
+  const getRelativePointerPosition = (stageNode) => {
+    if (!stageNode) return { x: 0, y: 0 };
+
+    const pointerPos = stageNode.getPointerPosition();
+    if (!pointerPos) return { x: 0, y: 0 };
+
+    // Правильное преобразование с учетом трансформации
+    const transform = stageNode.getAbsoluteTransform().copy();
+    return transform.invert().point(pointerPos);
+  };
+
+
+  const onMouseDown = (evt) => {
+    if (!isDraggableMode.value || !visibleSeatIds.value.length) {
+      return
+    }
+    if (isDraggable.value) return;
+
+    const stageNode = stageRef.value.getNode();
+    const pos = getRelativePointerPosition(stageNode);
+
+    selectionRect.value = {
+      ...selectionRect.value,
+      visible: true,
+      x1: pos.x,
+      y1: pos.y,
+      x2: pos.x,
+      y2: pos.y,
+    };
+  };
+
+  const onMouseMove = (evt) => {
+    if (!isDraggableMode.value) return;
+    if (isDraggable.value || !selectionRect.value.visible) return;
+
+    const stageNode = stageRef.value.getNode();
+    const pos = getRelativePointerPosition(stageNode);
+
+    selectionRect.value = {
+      ...selectionRect.value,
+      x2: pos.x,
+      y2: pos.y,
+    };
+
+    const box = {
+      x: Math.min(selectionRect.value.x1, selectionRect.value.x2),
+      y: Math.min(selectionRect.value.y1, selectionRect.value.y2),
+      width: Math.abs(selectionRect.value.x2 - selectionRect.value.x1),
+      height: Math.abs(selectionRect.value.y2 - selectionRect.value.y1),
+    };
+
+    // const ids = [];
+    const selectedSeats = {};
+
+    // Используем наш spatialIndex для поиска пересечений
+    const candidateSeats = spatialIndex?.search({
+      minX: box.x,
+      minY: box.y,
+      maxX: box.x + box.width,
+      maxY: box.y + box.height,
+    });
+
+    // Проверяем точное пересечение
+    candidateSeats.forEach(item => {
+      const seatRect = {
+        x: actualSeats.value[item.id].x,
+        y: actualSeats.value[item.id].y,
+        width: SEAT_SIZE,
+        height: SEAT_SIZE,
+      };
+
+      if (rectanglesIntersect(box, seatRect)) {
+        // ids.push(item.id);
+        selectedSeats[item.id] = actualSeats.value[item.id];
+      }
+    });
+
+    if (isUnselectionMode.value) {
+      currentUnselectedSeats.value = {...selectedSeats}
+    } else {
+      currentSelectedSeats.value = {...selectedSeats}
+    }
+
+    // console.log("Selected IDs:", selectedSeats);
+  };
+
+  const rectanglesIntersect = (rect1, rect2) => {
+    return rect1.x < rect2.x + rect2.width &&
+          rect1.x + rect1.width > rect2.x &&
+          rect1.y < rect2.y + rect2.height &&
+          rect1.y + rect1.height > rect2.y;
+  };
+
+
+  const onMouseUp = (evt) => {
+    if (!isDraggableMode.value) {
+      return
+    }
+
+    if (isDraggable.value) {
+      selectionRect.value.visible = false
+
+      return
+    }
+
+    if (!selectionRect.value.visible) {
+      return
+    }
+
+    if (isUnselectionMode.value) {
+      const oldSelectedSeats = {...seatsState.value.selectedSeats}
+
+      for (const id in currentUnselectedSeats.value) {
+        delete oldSelectedSeats[id]
       }
 
-      return '_grab'
-    }
-
-    return ''
-  })
-
-  watch(() => getGrabbingClass.value, (newVal, oldVal) => {
-    if (oldVal) {
-      elActionLayer.value.classList.remove(oldVal)
-    }
-
-    if (newVal) {
-      elActionLayer.value.classList.add(newVal)
-    }
-  })
-
-  const toggleSeatSelect = id => {
-    const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-
-    if (seatsState.value.selectedSeats[id] || currentSelectedSeats.value[id]) {
-      delete currentSelectedSeats.value[id]
-      delete seatsState.value.selectedSeats[id]
-
-      if (seatElement) {
-        seatElement.classList.remove('_selected')
+      seatsState.value.selectedSeats = {
+        ...oldSelectedSeats,
       }
     } else {
-      currentSelectedSeats.value[id] = getQuotaSeats.value[id]
-      seatsState.value.selectedSeats[id] = getQuotaSeats.value[id]
-
-      if (seatElement) {
-        seatElement.classList.add('_selected')
+      seatsState.value.selectedSeats = {
+        ...seatsState.value.selectedSeats,
+        ...currentSelectedSeats.value,
       }
     }
-
-    currentSelectedSeats.value = {}
 
     StateHistoryManager.saveState(seatsState.value)
+    currentSelectedSeats.value = {}
+    currentUnselectedSeats.value = {}
+
+    // FIXME: заменить на перерисовку области, а не всего снимка
+    createFullSnapshot()
+
+    selectionRect.value.visible = false;
+  };
+
+
+
+  // развыделение
+  const currentUnselectedSeats = ref({})
+
+  const handleUnselectionKeyDown = evt => {
+    if (evt.key === 'Control' || evt.key === 'Meta') {
+      isUnselectionMode.value = true
+      selectionRect.value.fill = 'rgba(255,0,0,0.5)'
+    }
   }
 
-  const drawSelectionFrame = (elFrame, startCoords, endCoords) => {
-    const actualCoords = {
-      startX: startCoords.x,
-      startY: startCoords.y,
-      endX: endCoords.x,
-      endY: endCoords.y,
+  const handleUnselectionKeyUp = evt => {
+    if (evt.key === 'Control' || evt.key === 'Meta') {
+      isUnselectionMode.value = false
+      selectionRect.value.fill = 'rgba(0,0,255,0.5)'
     }
-
-    if (actualCoords.startX > actualCoords.endX) {
-      [actualCoords.startX, actualCoords.endX] = [actualCoords.endX, actualCoords.startX]
-    }
-
-    if (actualCoords.startY > actualCoords.endY) {
-      [actualCoords.startY, actualCoords.endY] = [actualCoords.endY, actualCoords.startY]
-    }
-
-    elFrame.setAttribute('x', actualCoords.startX)
-    elFrame.setAttribute('y', actualCoords.startY)
-
-    elFrame.setAttribute('width', actualCoords.endX - actualCoords.startX)
-    elFrame.setAttribute('height', actualCoords.endY - actualCoords.startY)
   }
 
-  const selectElementInArea = () => {
-    // исходный набор seats
-    // куда сохранять targetSeats
+  const unselectionListenersAdd = () => {
+    document.addEventListener('keydown', handleUnselectionKeyDown)
+    document.addEventListener('keyup', handleUnselectionKeyUp)
+  }
+
+  const unselectionListenersRemove = () => {
+    document.removeEventListener('keydown', handleUnselectionKeyDown)
+    document.removeEventListener('keyup', handleUnselectionKeyUp)
   }
 
 
-  const getBoundingRight = elem => elem.getBoundingClientRect().left + elem.getBoundingClientRect().width
-  const getBoundingBottom = elem => elem.getBoundingClientRect().top + elem.getBoundingClientRect().height
+  // END: рамка-выделение
 
-  const selectionSeatsFromArea = () => {
-    const $selectionArea = elSvgMapWrapper.value // svg
-    const $selectionFrameRect = elSelectionFrameRect.value // рамка-выделение
+  // START: зум для действий
+  const ACTIVE_ZOOM = 1.3
+  const ACTIVE_ZOOM_LISTENER_OPTS = { capture: true, passive: false }
 
-    let startCoords
-    let endCoordsInArea
-
-    const getCoordsInSvgMapWrapper = evt => {
-      const point = DOMPoint.fromPoint($selectionArea)
-
-      point.x = evt.clientX
-      point.y = evt.clientY
-
-      const cursorPoint = point
-        .matrixTransform($selectionArea
-          .getScreenCTM()
-          .inverse())
-      // {
-      //   "x": 390,
-      //   "y": 172.0078125,
-      //   "z": 0,
-      //   "w": 1
-      // }
-
-      return cursorPoint || {}
+  const handleMouseDownZoom = evt => {
+    if (!stageRef.value || currentZoom.value >= ACTIVE_ZOOM) {
+      return
     }
 
-    // выделение элементов, пересекающихся с рамкой-выделением
-    // проверяются координаты относительно окна браузера
-    const doSelection = () => {
-      if (!$schemePlaces.value) {
-        return
-      }
+    const stage = stageRef.value.getNode();
 
-      const selectionFrame = elSelectionFrameRect.value
+    // Обновляем позицию указателя для Konva до изменения зума
+    stage.setPointersPositions(evt);
+    const pointerPos = stage.getPointerPosition();
 
-      if (!selectionFrame) {
-        return
-      }
-
-      const actualCoords = {
-        startX: selectionFrame.getBoundingClientRect().x,
-        startY: selectionFrame.getBoundingClientRect().y,
-        endX: selectionFrame.getBoundingClientRect().x + selectionFrame.getBoundingClientRect().width,
-        endY: selectionFrame.getBoundingClientRect().y + selectionFrame.getBoundingClientRect().height,
-      }
-
-      if (actualCoords.startX > actualCoords.endX) {
-        [actualCoords.startX, actualCoords.endX] = [actualCoords.endX, actualCoords.startX]
-      }
-
-      if (actualCoords.startY > actualCoords.endY) {
-        [actualCoords.startY, actualCoords.endY] = [actualCoords.endY, actualCoords.startY]
-      }
-
-      // выеление мест внутри рамки
-      for (let $item of $schemePlaces.value) {
-        $item = $item.$el || $item
-
-        if (!getQuotaSeats.value[$item.id]) {
-          continue
-        }
-
-        // тормозит
-        // const placeObj = props.seats.find(place => place.id == $item.id)
-        // const isValidPlace = $item?.getAttribute('selectable') == 'true'
-
-        // if (!isValidPlace) {
-        //   continue
-        // }
-
-        const isItemInSelectionArea =
-          (
-            $item.getBoundingClientRect().x >= actualCoords.startX && $item.getBoundingClientRect().x <= actualCoords.endX
-            || getBoundingRight($item) >= actualCoords.startX && getBoundingRight($item) <= actualCoords.endX
-          )
-          &&
-          (
-            $item.getBoundingClientRect().y >= actualCoords.startY && $item.getBoundingClientRect().y <= actualCoords.endY
-            || getBoundingBottom($item) >= actualCoords.startY && getBoundingBottom($item) <= actualCoords.endY
-          )
-
-        // снятие выделения с мест,
-        // которые были выделены в последней области
-        // и в итоге не попали в неё
-        if (!isItemInSelectionArea) {
-          if (currentSelectedSeats.value[$item.id]) {
-            delete currentSelectedSeats.value[$item.id]
-            // Удаляем класс _selected, если место было в currentSelectedSeats, но вышло из области выделения
-            $item.classList.remove('_selected')
-          }
-          continue
-        }
-
-        // прерывание если место уже открыто
-        if (openedSeats.value[$item.id]) {
-          continue
-        }
-
-        // для выделения с shift могут быть другие условия
-        // поэтому лучше пока отдельным условием
-        if (seatsState.value.selectedSeats[$item.id]) {
-          continue
-        }
-
-        currentSelectedSeats.value[$item.id] = getQuotaSeats.value[$item.id]
-        // Добавляем класс _selected при выделении
-        $item.classList.add('_selected')
-      }
+    if (!pointerPos) {
+      return
     }
 
-    const confirmSelection = () => {
-      if (!Object.keys(currentSelectedSeats.value).length) {
-        return
-      }
+    const oldZoom = currentZoom.value
+    const newZoom = ACTIVE_ZOOM
 
-      // вызывает ошибку даже на 1000 мест
-      // localhost/:1 Uncaught (in promise) Maximum recursive updates exceeded in component <SchemeMain>. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.
-      // for (const id in currentSelectedSeats.value) {
-      //   seatsState.value.selectedSeats[id] = currentSelectedSeats.value[id]
-      // }
+    // Позиция мыши в виртуальных координатах схемы
+    const virtualPoint = {
+      x: (pointerPos.x - stage.x()) / oldZoom,
+      y: (pointerPos.y - stage.y()) / oldZoom
+    };
 
-      // вместо кода выше, меняем реактивное свойство seatsState только 1 раз
-      const tempSeats = {
-        ...seatsState.value.selectedSeats,
-        ...currentSelectedSeats.value,
-      }
+    // Новое смещение
+    const newX = pointerPos.x - virtualPoint.x * newZoom;
+    const newY = pointerPos.y - virtualPoint.y * newZoom;
 
-      seatsState.value.selectedSeats = tempSeats
+    stage.x(newX);
+    stage.y(newY);
+    // Ставим масштаб напрямую
+    stage.scale({ x: newZoom, y: newZoom });
+    currentZoom.value = newZoom;
 
-      StateHistoryManager.saveState(seatsState.value)
-
-      emit('selectSeats', currentSelectedSeats.value)
-
-      currentSelectedSeats.value = {}
+    if (newZoom < MIN_OBJECTS_ZOOM) {
+      visibleSeatIds.value = []
+      snapshotLayerRef.value.getNode().show();
+      objectsLayerRef.value.getNode().hide();
+    } else {
+      updateVisibleSeats();
     }
 
-    const mouseDownListener = evt => {
-      if (currentAction.value || !isMouseDown.value) {
-        return
-      }
-
-      // установка режима выделения
-      currentAction.value = 'selection'
-
-      $selectionFrameRect.setAttribute('visibility', 'visible')
-
-      startCoords = getCoordsInSvgMapWrapper(evt)
-      endCoordsInArea = getCoordsInSvgMapWrapper(evt)
-
-      $selectionFrameRect.setAttribute('x', startCoords.x)
-      $selectionFrameRect.setAttribute('y', startCoords.y)
-
-      $selectionFrameRect.setAttribute('width', 0)
-      $selectionFrameRect.setAttribute('height', 0)
+    if (newZoom > SNAPSHOT_ZOOM_THRESHOLD) {
+      snapshotLayerRef.value.getNode().hide();
+      objectsLayerRef.value.getNode().show();
     }
 
-    const mouseMoveListener = throttle(evt => {
-      if (currentAction.value !== 'selection') {
-        return
-      }
+    // Если включено перетягивание — запускаем drag вручную, чтобы избежать "скачка"
+    if (isDraggable.value) {
+      evt.preventDefault();
+      evt.stopPropagation();
 
-      endCoordsInArea = getCoordsInSvgMapWrapper(evt)
-
-      if (endCoordsInArea.x == startCoords.x || endCoordsInArea.y == startCoords.y) {
-        return
-      }
-
-      drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
-      // doSelection()
-    }, throttleFrequency)
-
-    const mouseUpListener = evt => {
-      if (currentAction.value !== 'selection') {
-        return
-      }
-
-      currentAction.value = ''
-
-      if (endCoordsInArea?.x == startCoords?.x || endCoordsInArea?.y == startCoords?.y) {
-        return
-      }
-
-      if (Object.keys(currentSelectedSeats.value).length) {
-        seatsState.value.selectedSeats = { ...seatsState.value.selectedSeats, ...currentSelectedSeats.value }
-
-        currentSelectedSeats.value = {}
-        StateHistoryManager.saveState(seatsState.value)
-      }
-
-      doSelection()
-      confirmSelection()
-      $selectionFrameRect.setAttribute('visibility', 'hidden')
+      // Снова фиксируем позицию указателя после трансформации и стартуем перетягивание
+      stage.setPointersPositions(evt);
+      stage.startDrag();
     }
-
-    let isSelectionAreaListeners = false
-    watch(() => $selectionArea, newVal => {
-      if (!newVal || isSelectionAreaListeners) {
-        return
-      }
-
-      isSelectionAreaListeners = true
-
-      $selectionArea.addEventListener('mousedown', mouseDownListener)
-      $selectionArea.addEventListener('mousemove', mouseMoveListener)
-    }, { immediate: true })
-
-    // $selectionArea.addEventListener('mousedown', mouseDownListener)
-    // $selectionArea.addEventListener('mousemove', mouseMoveListener)
-    document.addEventListener('mouseup', mouseUpListener)
   }
 
-  const unSelectionSeatsFromArea = () => {
-    const $selectionArea = elSvgMapWrapper.value // svg
-    const $selectionFrameRect = elSelectionFrameRect.value // рамка-выделение
-
-    let startCoords
-    let endCoordsInArea
-
-    const getCoordsInSvgMapWrapper = evt => {
-      const point = DOMPoint.fromPoint($selectionArea)
-
-      point.x = evt.clientX
-      point.y = evt.clientY
-
-      const cursorPoint = point
-        .matrixTransform($selectionArea
-          .getScreenCTM()
-          .inverse())
-
-      return cursorPoint || {}
-    }
-
-    // выделение элементов, пересекающихся с рамкой-выделением
-    // проверяются координаты относительно окна браузера
-    const doUnSelection = () => {
-      const selectionFrame = elSelectionFrameRect.value
-
-      if (!selectionFrame) {
-        return
-      }
-
-      const actualCoords = {
-        startX: selectionFrame.getBoundingClientRect().x,
-        startY: selectionFrame.getBoundingClientRect().y,
-        endX: selectionFrame.getBoundingClientRect().x + selectionFrame.getBoundingClientRect().width,
-        endY: selectionFrame.getBoundingClientRect().y + selectionFrame.getBoundingClientRect().height,
-      }
-
-      if (actualCoords.startX > actualCoords.endX) {
-        [actualCoords.startX, actualCoords.endX] = [actualCoords.endX, actualCoords.startX]
-      }
-
-      if (actualCoords.startY > actualCoords.endY) {
-        [actualCoords.startY, actualCoords.endY] = [actualCoords.endY, actualCoords.startY]
-      }
-
-      // выбор мест внутри рамки
-      for (let $item of $schemePlaces.value) {
-        $item = $item.$el || $item
-
-        const isItemInSelectionArea =
-          (
-            $item.getBoundingClientRect().x >= actualCoords.startX && $item.getBoundingClientRect().x <= actualCoords.endX
-            || getBoundingRight($item) >= actualCoords.startX && getBoundingRight($item) <= actualCoords.endX
-          )
-          &&
-          (
-            $item.getBoundingClientRect().y >= actualCoords.startY && $item.getBoundingClientRect().y <= actualCoords.endY
-            || getBoundingBottom($item) >= actualCoords.startY && getBoundingBottom($item) <= actualCoords.endY
-          )
-
-        // прерывание если место уже открыто
-        if (openedSeats.value[$item.id]) {
-          continue
-        }
-
-        if (!isItemInSelectionArea) {
-          if (currentUnSelectedSeats.value[$item.id]) {
-            delete currentUnSelectedSeats.value[$item.id]
-            // Возвращаем класс _selected, если место было в currentUnSelectedSeats, но вышло из области снятия выделения
-            if (seatsState.value.selectedSeats[$item.id]) {
-              $item.classList.add('_selected')
-            }
-            // Удаляем класс _unselected, если место вышло из области снятия выделения
-            $item.classList.remove('_unselected')
-          }
-
-          continue
-        }
-
-        if (seatsState.value.selectedSeats[$item.id]) {
-          currentUnSelectedSeats.value[$item.id] = getQuotaSeats.value[$item.id]
-          // Удаляем класс _selected при добавлении в список мест для снятия выделения
-          $item.classList.remove('_selected')
-          // Добавляем класс _unselected
-          $item.classList.add('_unselected')
-        }
-      }
-    }
-
-    const confirmUnselection = () => {
-      if (!Object.keys(currentUnSelectedSeats.value).length) {
-        return
-      }
-
-      let tempStateSelectedSeats = {
-        ...seatsState.value.selectedSeats,
-      }
-
-      let tempCurrentSelectedSeats = {
-        ...currentSelectedSeats.value,
-      }
-
-      for (const id in currentUnSelectedSeats.value) {
-        if (currentUnSelectedSeats.value[id]) {
-          delete tempStateSelectedSeats[id]
-          delete tempCurrentSelectedSeats[id]
-
-          // Удаляем класс _selected при отмене выделения
-          const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-          if (seatElement) {
-            seatElement.classList.remove('_selected')
-            // Удаляем класс _unselected после завершения операции отмены выделения
-            seatElement.classList.remove('_unselected')
-          }
-        }
-      }
-
-      seatsState.value.selectedSeats = tempStateSelectedSeats
-      currentSelectedSeats.value = tempCurrentSelectedSeats
-
-      StateHistoryManager.saveState(seatsState.value)
-
-      emit('unselectSeats', currentUnSelectedSeats.value)
-
-      currentUnSelectedSeats.value = {}
-    }
-
-    const mouseDownListener = evt => {
-      if (currentAction.value !== 'unselection') {
-        return
-      }
-
-      $selectionFrameRect.setAttribute('visibility', 'visible')
-
-      startCoords = getCoordsInSvgMapWrapper(evt)
-
-      $selectionFrameRect.setAttribute('x', startCoords.x)
-      $selectionFrameRect.setAttribute('y', startCoords.y)
-
-      $selectionFrameRect.setAttribute('width', 0)
-      $selectionFrameRect.setAttribute('height', 0)
-    }
-
-    const mouseMoveListener = throttle(evt => {
-      if (currentAction.value !== 'unselection' || !isMouseDown.value) {
-        return
-      }
-
-      endCoordsInArea = getCoordsInSvgMapWrapper(evt)
-
-      drawSelectionFrame($selectionFrameRect, startCoords, endCoordsInArea)
-      // TODO: для оптимизации места не выбираются во время рисования рамки
-      // только после завершения рисования
-      doUnSelection()
-    }, throttleFrequency)
-
-    const mouseUpListener = evt => {
-      if (currentAction.value !== 'unselection') {
-        return
-      }
-
-      currentAction.value = ''
-
-      doUnSelection()
-      confirmUnselection()
-
-      // ??? Убедимся, что все классы _unselected удалены после завершения операции
-      for (let $item of $schemePlaces.value) {
-        $item = $item.$el || $item
-        $item.classList.remove('_unselected')
-      }
-
-      $selectionFrameRect.setAttribute('visibility', 'hidden')
-    }
-
-    document.addEventListener('keydown', evt => {
-      if (evt.key === 'Control' || evt.key === 'Meta') {
-        isControlKey.value = true
-      }
-
-      if (isControlKey.value && !currentAction.value) {
-        currentAction.value = 'unselection'
-      }
+  const activeZoomListenersAdd = () => {
+    nextTick(() => {
+      schemeMainRef.value.addEventListener('mousedown', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
+      schemeMainRef.value.addEventListener('touchstart', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
     })
-
-    document.addEventListener('keyup', evt => {
-      if (evt.key === 'Control' || evt.key === 'Meta') {
-        isControlKey.value = false
-      }
-
-      if (!isMouseDown.value) {
-        currentAction.value = ''
-      }
-    })
-
-    let isSelectionAreaListeners = false
-    watch(() => $selectionArea, newVal => {
-      if (!newVal || isSelectionAreaListeners) {
-        return
-      }
-
-      isSelectionAreaListeners = true
-
-      $selectionArea.addEventListener('mousedown', mouseDownListener)
-      $selectionArea.addEventListener('mousemove', mouseMoveListener)
-    }, { immediate: true })
-
-    // $selectionArea.addEventListener('mousedown', mouseDownListener)
-    // $selectionArea.addEventListener('mousemove', mouseMoveListener)
-    document.addEventListener('mouseup', mouseUpListener)
   }
 
-  // START: zoom
-  import SchemeScaleControls from '../../components/scheme/SchemeScaleControls.vue'
-
-  const { zoomScale, zoom } = useZoom({
-    $zoomWrapper: elSvgMapWrapper,
-    minMaxZoom: {
-      min: 0.3,
-      max: 2.2,
-    },
-  })
-
-  const scale = computed(() => `scale(${zoomScale.value})`)
-
-  const isFullscreen = inject('isFullscreen')
-
-  const onFullScreenBtnClick = () => {
-    emit('changeFullscreenMode')
+  const activeZoomListenersRemove = () => {
+    schemeMainRef.value.removeEventListener('mousedown', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
+    schemeMainRef.value.removeEventListener('touchstart', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
   }
-
-  const elActionLayer = ref()
-  const lastMapTranslateCoords = { x: 0, y: 0 }
-
-  const grabbing = () => {
-    const targetEl = document.querySelector('#elSvgMap')
-    let isDragging = false
-    let offsetX, offsetY
-
-    // отображение/скрытие action_layer
-    watch(isModeGrabbing, (newVal) => {
-      if (!elActionLayer.value) return
-
-      // Просто добавляем/удаляем класс без изменения стилей
-      if (newVal) {
-        elActionLayer.value.classList.add('_visible')
-        currentAction.value = 'grabbing'
-      } else {
-        elActionLayer.value.classList.remove('_visible')
-        currentAction.value = ''
-      }
-    }, { immediate: true })
-
-    // Следим за изменением elActionLayer для добавления обработчиков
-    watch(elActionLayer, (newVal) => {
-      if (!newVal) return
-
-      const actionLayer = newVal
-
-      actionLayer.addEventListener('mousedown', (e) => {
-        if (!isModeGrabbing.value) return
-
-        isDragging = true
-        offsetX = e.clientX - lastMapTranslateCoords.x
-        offsetY = e.clientY - lastMapTranslateCoords.y
-      })
-
-      actionLayer.addEventListener('mousemove', (e) => {
-        if (!isDragging || !isModeGrabbing.value) return
-
-        lastMapTranslateCoords.x = e.clientX - offsetX
-        lastMapTranslateCoords.y = e.clientY - offsetY
-
-        requestAnimationFrame(() => {
-          targetEl.style.transform = `translate(${lastMapTranslateCoords.x}px, ${lastMapTranslateCoords.y}px)`
-        })
-      })
-
-      document.addEventListener('mouseup', () => {
-        isDragging = false
-      })
-    }, { immediate: true })
-  }
-
-  // START: tooltip
-  import VTooltip from '../../components/ui/VTooltip.vue'
-
-  const isTooltip = ref(false)
-  const tooltipHtml = ref('')
-  const tooltipParent = ref('')
-
-  const openSeatTooltip = seat => {
-    if (!seat?.tooltip?.html) {
-      return
-    }
-
-    tooltipHtml.value = seat.tooltip.html || ''
-    tooltipParent.value = `[id="${seat.id}"]`
-
-    isTooltip.value = true
-  }
-
-  const closeSeatTooltip = () => {
-    isTooltip.value = false
-  }
-  // END: tooltip
-
-  // START: scheme global listeners
-  const onSvgSchemeClick = evt => {
-    if (!isModeSelection.value) {
-      return
-    }
-
-    const $seat = evt.target.closest('g[data-seat="true"]')
-
-    if (!$seat) {
-      return
-    }
-
-    const id = $seat.dataset.id
-
-    if (!id || !getQuotaSeats.value[id]) {
-      return
-    }
-
-    toggleSeatSelect(id)
-  }
-
-  // TODO: отрефакторить работу с селекторами
-  const handleSvgSchemeMouseMove = evt => {
-    const $seat = evt.target.closest('g[data-seat="true"]')
-    const $schemeInner = evt.target.closest('g[data-svg-inner="true"]')
-    const $tooltipBody = evt.target.closest('*[data-tooltip-body="true"]')
-    const seatId = $seat?.dataset?.id
-    const seatTooltipHTML = getQuotaSeats.value[seatId]?.tooltip?.html
-
-    if (!$schemeInner && !$tooltipBody) {
-      closeSeatTooltip()
-
-      return
-    }
-
-    if ($seat || seatId || seatTooltipHTML || !$tooltipBody) {
-      closeSeatTooltip()
-
-      nextTick(() => {
-        openSeatTooltip(getSeats.value[seatId])
-      })
-    }
-  }
-
-  const handleSvgSchemeMouseMoveDebounced = debounce(handleSvgSchemeMouseMove, 300)
-  // END: scheme global listeners
-
-  // START: document global listeners
-  const addGlobalEventListeners = () => {
-    document.addEventListener('mousemove', handleSvgSchemeMouseMoveDebounced)
-
-    document.addEventListener('keydown', evt => {
-      if (evt.key === 'Shift') {
-        isShiftKey.value = true
-      }
-    })
-
-    document.addEventListener('keyup', evt => {
-      if (evt.key === 'Shift') {
-        isShiftKey.value = false
-      }
-    })
-
-    // перенёс в вотчер, потому что в админке не успевает прогрузиться схема
-    // и лисенер вешается на undefined
-    // elSvgMapWrapper.value.addEventListener('mousedown', evt => {
-    //   if (evt.button === 0) {
-    //     isMouseDown.value = true
-    //   }
-    // })
-
-    // elSvgMapWrapper.value.addEventListener('mousedown', evt => {
-    //   if (evt.button === 1) {
-    //     isMouseMiddle.value = true
-    //   }
-    // })
-
-    document.addEventListener('mouseup', evt => {
-      isMouseDown.value = false
-      isMouseMiddle.value = false
-    })
-
-    // document.addEventListener('mousemove', handleSvgSchMouseMove)
-  }
-
-  // TODO: доделать остальные
-  const removeGlobalEventListeners = () => {
-    document.removeEventListener('mousemove', handleSvgSchemeMouseMoveDebounced)
-  }
-  // END: document global listeners
-
-
-  // FIXME: START: костыль для очистки выделения
-  const hallSchemeApp = inject('hallSchemeApp')
-
-  hallSchemeApp.on(hallSchemeApp.events['clearSelectedSeats'], () => {
-    // Удаляем класс _selected у всех выбранных мест
-    for (const id in seatsState.value.selectedSeats) {
-      const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-      if (seatElement) {
-        seatElement.classList.remove('_selected')
-      }
-    }
-
-    // Удаляем класс _unselected у всех мест с отменой выделения
-    for (const id in currentUnSelectedSeats.value) {
-      const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-      if (seatElement) {
-        seatElement.classList.remove('_unselected')
-      }
-    }
-
-    seatsState.value.selectedSeats = {}
-    currentUnSelectedSeats.value = {}
-    StateHistoryManager.clearState()
-  })
-  // FIXME: END: костыль для очистки выделения
-
-  const isFirstRender = ref(true)
-  watch(() => props.seats, () => {
-    if (!isFirstRender.value) {
-      return
-    }
-
-    isFirstRender.value = false
-    nextTick(centerSvgMap)
-  })
-
-  const centerSvgMap = () => {
-    const x = elSvgMapWrapper.value.getBoundingClientRect().width / 2
-      - elSvgMap.value.getBBox().width / 2
-
-    const y = elSvgMapWrapper.value.getBoundingClientRect().height / 2
-      - elSvgMap.value.getBBox().height / 2
-
-    elSvgMapTranslateCoords.value.x = x
-    elSvgMapTranslateCoords.value.y = y
-
-    // Обновляем последние координаты после центрирования
-    lastMapTranslateCoords.x = x
-    lastMapTranslateCoords.y = y
-  }
+  // END: зум для действий
 
   onMounted(() => {
-    // таймаут для прогрузки свг карты с местами
-    setTimeout(() => {
-      addGlobalEventListeners()
-      selectionSeatsFromArea()
-      unSelectionSeatsFromArea()
-      grabbing()
+    handleResize()
 
-      // Устанавливаем класс _selected для всех уже выбранных мест
-      nextTick(() => {
-        for (const id in seatsState.value.selectedSeats) {
-          const seatElement = document.querySelector(`[data-seat="true"][data-id="${id}"]`)
-          if (seatElement) {
-            seatElement.classList.add('_selected')
-          }
-        }
-      })
+    window.addEventListener('resize', handleResize)
+    unselectionListenersAdd()
+    grabbingListenersAdd()
+    activeZoomListenersAdd()
 
-      StateHistoryManager.saveState(seatsState.value)
-    }, 100)
+    addEventListenersForMousOverMode()
   })
 
-  onUnmounted(() => {
-    removeGlobalEventListeners()
+  onBeforeUnmount(() => {
+    window.removeEventListener('resize', handleResize)
+    unselectionListenersRemove()
+    grabbingListenersRemove()
+    activeZoomListenersRemove()
+
+    removeEventListenersForMousOverMode()
   })
+
+  // Пробрасываем константы в компонент через provide
+  provide('SEAT_SIZE', SEAT_SIZE)
 </script>
 
 <template>
-  <div class="scheme-main">
-    <VLoader v-show="loading" />
-
-    <!-- скрытие и появление не влияет на производительность -->
-    <!-- влияет текст в месте -->
-    <div
-      class="action_layer"
-      ref="elActionLayer"
-    ></div>
-
-    <!-- :class="{_select_mode: currentAction === 'selection' || currentAction === 'unselection'}" -->
-    <svg
-      id="elSvgMapWrapper"
-      ref="elSvgMapWrapper"
-      class="elSvgMapWrapper scheme-main__svg"
-      xmlns="http://www.w3.org/2000/svg"
-      width="100%"
-      height="100%"
-      @click="onSvgSchemeClick"
+  <div ref="schemeMainRef" class="scheme_main">
+    <v-stage
+      ref="stageRef"
+      class="stageRef"
+      :config="getStageConfig"
+      @mouseDown="onMouseDown"
+      @mouseUp="onMouseUp"
+      @mouseMove="throttle(onMouseMove, 16.7)()"
+      @dragstart="onDragStart"
+      @dragend="onDragEnd"
+      @wheel="evt => handleZoom(evt.evt)"
     >
-      <g
-        id="elSvgMap__inner"
-        :transform="scale"
-        data-svg-inner="true"
-        >
-        <g
-          id="elSvgMap"
-          ref="elSvgMap"
-        >
-          <SchemeSeat
-            v-for="mapPlace in getSeats"
-            :id="mapPlace.id"
-            :key="'place-' + mapPlace.id"
-            ref="$schemePlaces"
-            data-seat="true"
-            :data-id="mapPlace.id"
-            :seat="mapPlace"
-            :seat-width="props.config.seat_width || 20"
-            :seat-height="props.config.seat_height || 20"
-            :class="{
-              _disabled: !getQuotaSeats[mapPlace.id],
-            }"
-          />
+      <!-- Слой снимка (для перемещения) -->
+      <v-layer ref="snapshotLayerRef" :visible="false">
+        <v-image ref="snapshotImageRef" :config="snapshotConfig" />
+      </v-layer>
 
-          <!-- :class="{
-              _selected: seatsState.selectedSeats[mapPlace.id] || currentSelectedSeats[mapPlace.id],
-              _disabled: !getQuotaSeats[mapPlace.id],
-              _unselected: currentUnSelectedSeats[mapPlace.id],
-            }" -->
-        </g>
-      </g>
+      <!-- Слой реальных объектов -->
+      <v-layer ref="objectsLayerRef">
+        <!-- Видимые места -->
+        <SchemeSeat
+          v-for="id in visibleSeatIds"
+          :key="id"
+          :seat="actualSeats[id]"
+          :selected="!!seatsState.selectedSeats[id] || Boolean(currentSelectedSeats[id])"
+          :unselected="!!currentUnselectedSeats[id]"
+          :is-selection-mode="isMouseoverSelectingMode"
+          @click="onSeatClick"
+          @mouseenter="onMouseEnter"
+          @mouseleave="onMouseLeave"
+          @mousedown="onSeatMouseDown(id, $event)"
+          @touchstart="onSeatMouseDown(id, $event)"
+        />
+      </v-layer>
 
-      <!-- рамка - выделение области -->
-      <rect
-        id="elSelectionFrameRect"
-        ref="elSelectionFrameRect"
-        :width="10"
-        :height="10"
-        :x="0"
-        :y="0"
-        rx="3"
-        ry="3"
-        visibility="hidden"
-        stroke-width="1"
-        stroke-dasharray="1 4"
-        stroke-linecap="round"
-        fill="rgba(106, 229, 251, 0.34)"
-        stroke="#68aafb"
-      />
-    </svg>
+      <!-- Слой для рамки выделения -->
+      <v-layer>
+        <v-rect :config="selectionRectProps" />
+      </v-layer>
+    </v-stage>
 
-    <SchemeScaleControls
-      class="scheme-main__controls"
-      :is-fullscreen="isFullscreen"
-      @click-zoom-in="zoom.in"
-      @click-zoom-out="zoom.out"
-      @click-zoom-reset="centerSvgMap(); zoom.reset()"
-      @click-full-screen="onFullScreenBtnClick"
+    <SchemeModesControls
+      :is-grab-mode="isMouseoverSelectingMode"
+      :is-cursor-mode="isDraggableMode"
+      @click-grab="isMouseoverSelectingMode = true; isDraggableMode = false"
+      @click-cursor="isDraggableMode = true; isMouseoverSelectingMode = false"
     />
-
-    <VTooltip
-      v-show="isTooltip"
-      :show="isTooltip"
-      :position="'horizontal'"
-      :parent-selector="tooltipParent"
-      data-tooltip-body="true"
-    >
-      <div v-html="tooltipHtml"></div>
-    </VTooltip>
   </div>
 </template>
 
-<style lang="less" scoped>
-  @import url('./SchemeMain.less');
+<style>
+.scheme_main {
+  width: 100%;
+  height: 100%;
 
-  .action_layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    transform: translate3d(0, 0, 0);
-    visibility: hidden;
-    pointer-events: none;
-    // background-color: rgba(255, 255, 255, .3);
-
-    &._visible {
-      visibility: visible;
-      pointer-events: all;
-      // transform: translate3d(0, 0, 0);
-    }
-
-    &._grab {
-      // cursor: grab;
-      cursor: move;
-    }
-
-    &._grabbing {
-      // cursor: grabbing;
-      cursor: move;
-    }
-  }
-
-  .scheme-main__svg {
-    position: absolute;
-    top: 0;
-    left: 0;
+  > div {
     width: 100%;
     height: 100%;
   }
+}
 </style>
-
-<style lang="less">
-  .seat:not(._disabled) {
-    .hover({
-      rect {
-        fill: @blue;
-      }
-    })
-  }
-</style>
-

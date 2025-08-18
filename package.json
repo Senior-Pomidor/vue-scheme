@@ -1,17 +1,10 @@
 {
-  "name": "@listim/vue_hall_scheme_view",
+  "name": "vue_hall_scheme_view",
   "private": false,
   "version": "1.0.8",
   "type": "module",
-  "author": "Afisha tickets",
+  "author": "Senior Pomidor",
   "description": "Vue app for rendering hall schema",
-  "repository": {
-    "type": "git",
-    "url": "git+https://gitlab.rambler.ru/listim/hall-schema-view"
-  },
-  "publishConfig": {
-    "registry": "https://art.rambler.ru/api/npm/listim-npm/"
-  },
   "scripts": {
     "dev": "vite",
     "watch": "vite build --watch",
@@ -27,12 +20,13 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.2.3",
     "eslint": "^8.39.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-vue": "^9.11.0",
     "less": "^4.1.3",
     "less-loader": "^11.1.0",
     "stylelint": "^15.10.2",
     "stylelint-config-standard": "^34.0.0",
     "stylelint-less": "^1.0.8",
-    "terser": "^5.24.0",
     "vite": "^4.4.5",
     "vite-plugin-eslint": "^1.8.0",
     "vite-plugin-stylelint": "^4.3.0",
@@ -42,5 +36,10 @@
     "dist"
   ],
   "main": "./dist/vue_hall_scheme_view.cjs",
-  "module": "./dist/vue_hall_scheme_view.js"
+  "module": "./dist/vue_hall_scheme_view.js",
+  "dependencies": {
+    "konva": "^9.3.22",
+    "rbush": "^4.0.1",
+    "vue-konva": "^3.2.2"
+  }
 }

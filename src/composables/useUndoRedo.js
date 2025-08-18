@@ -1,7 +1,11 @@
-import { onMounted, onUnmounted } from 'vue'
+import { isFunction } from '@/utils/isFunction'
+
 import { VStateHistoryManager } from '@/js/VStateHistoryManager'
 
-function useUndoRedo(stateRef) {
+import { onMounted, onUnmounted } from 'vue'
+
+
+function useUndoRedo(stateRef, onUndoLastAction) {
   if (!stateRef?.value) {
     console.warn('[useUndoRedo] необходимо передать ref() состояния')
   }
@@ -18,6 +22,10 @@ function useUndoRedo(stateRef) {
     }
 
     stateRef.value = prevState
+
+    if (isFunction(onUndoLastAction)) {
+      onUndoLastAction()
+    }
   }
 
   // отмена последнего действия с выделением мест на ctrl/command + z
