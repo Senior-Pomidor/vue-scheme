@@ -43,13 +43,8 @@
 
 <style lang="less">
   .SchemeModesControls {
-    position: absolute;
-    left: 16px;
-    top: 60px;
     display: flex;
     flex-direction: column;
-    width: initial !important;
-    height: initial !important;
     border: 1px solid #E5E5E5;
     border-radius: 6px;
     overflow: hidden;
@@ -72,11 +67,18 @@
         border-top: 1px solid #E5E5E5;
       }
 
-      &._active,
-      &:hover {
+      .hov {
         background-color: #000;
         color: #fff;
       }
+
+      &._active {
+        .hov;
+      }
+
+      .hover ({
+        .hov;
+      });
     }
 
     .btn__icon {

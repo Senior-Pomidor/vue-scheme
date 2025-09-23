@@ -14,7 +14,7 @@
 
 // TODO: стейт хистори менеджер +
 // TODO: выделение мест рамкой +
-// TODO: рефакторинг по кодстайлу (поменять последний коммит)
+// TODO: рефакторинг по кодстайлу
 // TODO: переключение режимов перетягивание + ведение + рамка по шифту / перетягивание + рамка по шифту
 // TODO: причесать выделение/развыделение
 // TODO: рефакторинг
@@ -26,6 +26,8 @@
 // TODO: заменить на Map() объекты с местами (хз, проверим надо ли, по скорости вроде не выиграем, доработки)
 // TODO: при отмене ctrl+z обновлять только часть снимка (доработки)
 // TODO: установить мин макс зум
+
+  import SchemeScaleControls from '@/components/scheme/SchemeScaleControls.vue'
 
   import { throttle } from '@/utils/throttle'
 
@@ -39,11 +41,13 @@
 
   const seats = inject('schemeSeats')
   const seatsChunk = inject('schemeSeatsChunk')
+  const isFullscreen = inject('isFullscreen', ref(false))
 
   const actualSeats = ref({})
 
   const emit = defineEmits([
     'changedSeatsState',
+    'changeFullscreenMode',
   ])
 
   let spatialIndex = null
@@ -466,6 +470,49 @@
     updateVisibleSeats()
   }
 
+
+  const doZoom = (newZoom, targetPoint = null) => {
+    if (!stageRef.value) {
+      return
+    }
+
+    if (newZoom < MIN_OBJECTS_ZOOM) {
+      return
+    }
+
+    const stage = stageRef.value.getNode()
+    const oldZoom = currentZoom.value
+
+    let zoomPoint
+
+    if (targetPoint) {
+      // для зума в точку курсора
+      zoomPoint = targetPoint
+    } else {
+      // Зум в центр экрана
+      zoomPoint = {
+        x: stage.width() / 2,
+        y: stage.height() / 2,
+      }
+    }
+
+    const virtualPoint = {
+      x: (zoomPoint.x - stage.x()) / oldZoom,
+      y: (zoomPoint.y - stage.y()) / oldZoom,
+    }
+
+    const newX = zoomPoint.x - virtualPoint.x * newZoom
+    const newY = zoomPoint.y - virtualPoint.y * newZoom
+
+    stage.x(newX)
+    stage.y(newY)
+    stage.scale({ x: newZoom, y: newZoom })
+    currentZoom.value = newZoom
+    stage.batchDraw()
+
+    updateZoomDisplay()
+  }
+
   const handleZoom = evt => {
     evt.preventDefault()
 
@@ -480,49 +527,10 @@
 
     const pointerPos = stage.getPointerPosition()
 
-    // Если курсор над сценой - зум в точку курсора
-    if (pointerPos) {
-      const virtualPoint = {
-        x: (pointerPos.x - stage.x()) / oldZoom,
-        y: (pointerPos.y - stage.y()) / oldZoom,
-      }
+    // Если курсор над сценой - зум в точку курсора, иначе в центр
+    const targetPoint = pointerPos || null
 
-      const newX = pointerPos.x - virtualPoint.x * newZoom
-      const newY = pointerPos.y - virtualPoint.y * newZoom
-
-      stage.x(newX)
-      stage.y(newY)
-    } else {
-      // Если курсор вне сцены - зум в центр
-      const center = {
-        x: stage.width() / 2,
-        y: stage.height() / 2,
-      }
-
-      const virtualCenter = {
-        x: (center.x - stage.x()) / oldZoom,
-        y: (center.y - stage.y()) / oldZoom,
-      }
-
-      const newX = center.x - virtualCenter.x * newZoom
-      const newY = center.y - virtualCenter.y * newZoom
-
-      stage.x(newX)
-      stage.y(newY)
-    }
-
-    // Ставим масштаб напрямую на сцену, чтобы сразу корректно посчитать viewport
-    stage.scale({ x: newZoom, y: newZoom })
-    currentZoom.value = newZoom
-    stage.batchDraw()
-
-    if (newZoom < MIN_OBJECTS_ZOOM) {
-      visibleSeatIds.value = []
-      snapshotLayerRef.value.getNode().show()
-      objectsLayerRef.value.getNode().hide()
-
-      return
-    }
+    doZoom(newZoom, targetPoint)
 
     updateVisibleSeatsThrottled()
 
@@ -656,6 +664,55 @@
     updateVisibleSeats()
   }
 
+
+  const zoomIn = () => {
+    console.log('in')
+    const oldZoom = currentZoom.value
+    const zoomFactor = 1.2
+    const newZoom = Math.min(oldZoom * zoomFactor, 20)
+    doZoom(newZoom)
+  }
+
+  const zoomOut = () => {
+    const oldZoom = currentZoom.value
+
+    const zoomFactor = 0.8
+    const newZoom = oldZoom * zoomFactor
+
+    doZoom(newZoom)
+  }
+
+  const zoomReset = () => {
+    const newZoom = 1.3
+    console.log('reset')
+
+    doZoom(newZoom)
+
+    centerStage()
+  }
+
+  const handleFullScreen = () => {
+    emit('changeFullscreenMode')
+  }
+
+  // Обновление отображения зума
+  const updateZoomDisplay = () => {
+    if (currentZoom.value < MIN_OBJECTS_ZOOM) {
+      visibleSeatIds.value = []
+      snapshotLayerRef.value.getNode().show()
+      objectsLayerRef.value.getNode().hide()
+
+      return
+    }
+
+    if (currentZoom.value > SNAPSHOT_ZOOM_THRESHOLD) {
+      snapshotLayerRef.value.getNode().hide()
+      objectsLayerRef.value.getNode().show()
+    }
+
+    updateVisibleSeats()
+  }
+
   watch(seats, (newSeats, oldSeats) => {
     console.log('watch seats', newSeats)
 
@@ -706,6 +763,15 @@
     // updateVisibleSeats()
   }, { deep: true })
 
+  watch(isFullscreen, () => {
+    nextTick(() => {
+      handleResize()
+
+      nextTick(() => {
+        updateVisibleSeats()
+      })
+    })
+  })
 
   const onMouseEnter = id => {
     schemeMainRef.value.style.cursor = 'pointer'
@@ -1087,6 +1153,11 @@
   const ACTIVE_ZOOM_LISTENER_OPTS = { capture: true, passive: false }
 
   const handleMouseDownZoom = evt => {
+    // проверка что клик не по кнопкам
+    if (evt.target.closest('.scheme_main__controls')) {
+      return
+    }
+
     if (!stageRef.value || currentZoom.value >= ACTIVE_ZOOM) {
       return
     }
@@ -1146,6 +1217,11 @@
 
   const activeZoomListenersAdd = () => {
     nextTick(() => {
+      console.log('stageRef : ', stageRef.value)
+      console.log('schemeMainRef : ', schemeMainRef)
+      console.log('schemeMainRef : ', schemeMainRef.value)
+
+
       schemeMainRef.value.addEventListener('mousedown', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
       schemeMainRef.value.addEventListener('touchstart', handleMouseDownZoom, ACTIVE_ZOOM_LISTENER_OPTS)
     })
@@ -1223,23 +1299,44 @@
       </v-layer>
     </v-stage>
 
-    <SchemeModesControls
-      :is-grab-mode="isMouseoverSelectingMode"
-      :is-cursor-mode="isDraggableMode"
-      @click-grab="isMouseoverSelectingMode = true; isDraggableMode = false"
-      @click-cursor="isDraggableMode = true; isMouseoverSelectingMode = false"
-    />
+    <div class="scheme_main__controls">
+      <SchemeModesControls
+        :is-grab-mode="isMouseoverSelectingMode"
+        :is-cursor-mode="isDraggableMode"
+        @click-grab="isMouseoverSelectingMode = true; isDraggableMode = false"
+        @click-cursor="isDraggableMode = true; isMouseoverSelectingMode = false"
+      />
+
+      <SchemeScaleControls
+        @click-zoom-in="zoomIn"
+        @click-zoom-out="zoomOut"
+        @click-zoom-reset="zoomReset"
+        @click-full-screen="handleFullScreen"
+      />
+    </div>
   </div>
 </template>
 
-<style>
-.scheme_main {
-  width: 100%;
-  height: 100%;
-
-  > div {
+<style lang="less">
+  .scheme_main {
     width: 100%;
     height: 100%;
+
+    > div {
+      width: 100%;
+      height: 100%;
+    }
   }
-}
+
+  .scheme_main__controls {
+    position: absolute;
+    left: 16px;
+    top: 60px;
+    width: initial !important;
+    height: initial !important;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 </style>
