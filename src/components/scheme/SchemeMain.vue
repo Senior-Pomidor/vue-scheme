@@ -41,10 +41,12 @@
 
   const seats = inject('schemeSeats')
   const seatsChunk = inject('schemeSeatsChunk')
+  const selectionFilters = inject('selectionFilters', ref({}))
   const isFullscreen = inject('isFullscreen', ref(false))
   const hallSchemeApp = inject('hallSchemeApp')
 
   const actualSeats = ref({})
+  const interactiveSeatIds = ref(new Set())
 
   const emit = defineEmits([
     'changedSeatsState',
@@ -261,6 +263,7 @@
     const seatTextConfigRow = getTextConfigRow(seat)
 
 
+    const isDisabled = !interactiveSeatIds.value.has(String(seat.id))
     ctx.fillStyle = seatRectConfig.fill
     ctx.strokeStyle = seatRectConfig.stroke
     ctx.lineWidth = Number(SNAPSHOT_SCALE) * seatRectConfig.strokeWidth
@@ -276,8 +279,20 @@
       [seatRectConfig.cornerRadius * SNAPSHOT_SCALE],
     )
 
-    ctx.fill()
-    ctx.stroke()
+    if (isDisabled) {
+      ctx.save()
+      ctx.globalAlpha = 0.35
+      ctx.fill()
+      ctx.restore()
+
+      ctx.save()
+      ctx.globalAlpha = 0.35
+      ctx.stroke()
+      ctx.restore()
+    } else {
+      ctx.fill()
+      ctx.stroke()
+    }
 
     // Отрисовка номера места
     ctx.fillStyle = seatTextConfigSeat.fill
@@ -285,22 +300,44 @@
     ctx.textAlign = seatTextConfigSeat.align
     ctx.textBaseline = seatTextConfigSeat.verticalAlign
 
-    ctx.fillText(
-      seat.seat,
-      scaledX + scaledSize + seatTextConfigSeat.OFFSET_X * SNAPSHOT_SCALE,
-      scaledY + scaledSize + seatTextConfigSeat.OFFSET_Y * SNAPSHOT_SCALE,
-    )
+    if (isDisabled) {
+      ctx.save()
+      ctx.globalAlpha = 0.35
+      ctx.fillText(
+        seat.seat,
+        scaledX + scaledSize + seatTextConfigSeat.OFFSET_X * SNAPSHOT_SCALE,
+        scaledY + scaledSize + seatTextConfigSeat.OFFSET_Y * SNAPSHOT_SCALE,
+      )
+      ctx.restore()
+    } else {
+      ctx.fillText(
+        seat.seat,
+        scaledX + scaledSize + seatTextConfigSeat.OFFSET_X * SNAPSHOT_SCALE,
+        scaledY + scaledSize + seatTextConfigSeat.OFFSET_Y * SNAPSHOT_SCALE,
+      )
+    }
 
     // Отрисовка номера ряда
     ctx.font = `${seatTextConfigRow.fontSize * SNAPSHOT_SCALE}px Arial` // Увеличиваем размер шрифта
     ctx.textAlign = seatTextConfigRow.align
     ctx.textBaseline = seatTextConfigRow.verticalAlign
 
-    ctx.fillText(
-      seat.row,
-      scaledX + seatTextConfigRow.OFFSET_X * SNAPSHOT_SCALE,
-      scaledY + seatTextConfigRow.OFFSET_Y * SNAPSHOT_SCALE,
-    )
+    if (isDisabled) {
+      ctx.save()
+      ctx.globalAlpha = 0.35
+      ctx.fillText(
+        seat.row,
+        scaledX + seatTextConfigRow.OFFSET_X * SNAPSHOT_SCALE,
+        scaledY + seatTextConfigRow.OFFSET_Y * SNAPSHOT_SCALE,
+      )
+      ctx.restore()
+    } else {
+      ctx.fillText(
+        seat.row,
+        scaledX + seatTextConfigRow.OFFSET_X * SNAPSHOT_SCALE,
+        scaledY + seatTextConfigRow.OFFSET_Y * SNAPSHOT_SCALE,
+      )
+    }
   }
 
   // Построение пространственного индекса (R-tree)
@@ -546,6 +583,9 @@
   }
 
   const onSeatClick = seat => {
+    if (!interactiveSeatIds.value.has(String(seat.id))) {
+      return
+    }
     // FIXME: заменить на нормальное обновление состояния
     // emit('changedSeatsState', {
     //   [seat.id]: seat,
@@ -734,6 +774,8 @@
 
     spatialIndex = buildSpatialIndex(seats.value, SEAT_SIZE)
 
+    recomputeInteractiveSeats()
+
     createFullSnapshot()
     updateVisibleSeats()
   }, { deep: true })
@@ -754,6 +796,8 @@
 
     StateHistoryManager.clearState()
     StateHistoryManager.saveState(seatsState.value)
+
+    recomputeInteractiveSeats()
 
     // initOffscreenCanvas()
 
@@ -788,6 +832,10 @@
       return
     }
 
+    if (!interactiveSeatIds.value.has(String(placeId))) {
+      return
+    }
+
     isMouseoverSelecting.value = true
     isDraggable.value = false
 
@@ -818,6 +866,12 @@
 
     if (node?.name() === 'shape') {
       const placeId = node.id()
+
+      // hover работает на всех местах, но взаимодействие только с интерактивными
+      if (!interactiveSeatIds.value.has(String(placeId))) {
+        currentPlaceId.value = placeId
+        return
+      }
 
       if (placeId === currentPlaceId.value) {
         return
@@ -1048,6 +1102,9 @@
 
     // Проверяем точное пересечение
     candidateSeats.forEach(item => {
+      if (!interactiveSeatIds.value.has(String(item.id))) {
+        return
+      }
       const seatRect = {
         x: actualSeats.value[item.id].x,
         y: actualSeats.value[item.id].y,
@@ -1310,6 +1367,24 @@
 
   // Пробрасываем константы в компонент через provide
   provide('SEAT_SIZE', SEAT_SIZE)
+
+  // Простая фильтрация мест: доступно к взаимодействию только status === 'closed'
+  const recomputeInteractiveSeats = () => {
+    const newSet = new Set()
+
+    for (const id in actualSeats.value) {
+      const seat = actualSeats.value[id]
+      if (!seat) {
+        continue
+      }
+
+      if (seat.status == 'available') {
+        newSet.add(String(id))
+      }
+    }
+
+    interactiveSeatIds.value = newSet
+  }
 </script>
 
 <template>
@@ -1340,6 +1415,7 @@
           :selected="!!seatsState.selectedSeats[id] || Boolean(currentSelectedSeats[id])"
           :unselected="!!currentUnselectedSeats[id]"
           :is-selection-mode="isMouseoverSelectingMode"
+          :disabled="!interactiveSeatIds.has(String(id))"
           @click="onSeatClick"
           @mouseenter="onMouseEnter"
           @mouseleave="onMouseLeave"

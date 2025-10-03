@@ -7,6 +7,7 @@
     selected: Boolean,
     unselected: Boolean,
     isSelectionMode: Boolean,
+    disabled: Boolean,
   })
 
   const emit = defineEmits(['click', 'mouseenter', 'mouseleave', 'mousedown', 'touchstart'])
@@ -28,7 +29,7 @@
       stroke = stroke[0]
     }
 
-    if (isHovered.value && !props.isSelectionMode || props.selected) {
+    if (!props.disabled && (isHovered.value && !props.isSelectionMode || props.selected)) {
       fill = 'blue'
     }
 
@@ -48,6 +49,7 @@
       listening: true,
       name: 'shape',
       id: String(props.seat.id),
+      opacity: props.disabled ? 0.35 : 1,
     }
   })
 
@@ -63,6 +65,7 @@
     align: 'right',
     verticalAlign: 'bottom',
     listening: false,
+    opacity: props.disabled ? 0.35 : 1,
   }))
 
   // Конфиг для текста номера ряда
@@ -77,6 +80,7 @@
     align: 'start',
     verticalAlign: 'top',
     listening: false,
+    opacity: props.disabled ? 0.35 : 1,
   }))
 
 
@@ -97,8 +101,6 @@
 </script>
 
 <template>
-  {{ props.selected }}
-  {{ isHovered }}
   <v-rect
     :config="rectConfig"
     @click="onClick"
