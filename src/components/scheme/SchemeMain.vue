@@ -302,11 +302,13 @@
     if (isDisabled) {
       ctx.save()
       ctx.globalAlpha = 0.35
+
       ctx.fillText(
         seat.seat,
         scaledX + scaledSize + seatTextConfigSeat.OFFSET_X * SNAPSHOT_SCALE,
         scaledY + scaledSize + seatTextConfigSeat.OFFSET_Y * SNAPSHOT_SCALE,
       )
+
       ctx.restore()
     } else {
       ctx.fillText(
@@ -324,11 +326,13 @@
     if (isDisabled) {
       ctx.save()
       ctx.globalAlpha = 0.35
+
       ctx.fillText(
         seat.row,
         scaledX + seatTextConfigRow.OFFSET_X * SNAPSHOT_SCALE,
         scaledY + seatTextConfigRow.OFFSET_Y * SNAPSHOT_SCALE,
       )
+
       ctx.restore()
     } else {
       ctx.fillText(
@@ -581,46 +585,36 @@
     }
   }
 
+  const isInitialClick = ref(true) // true, пока не было движения после mousedown
+
   const onSeatClick = seat => {
-    if (!interactiveSeatIds.value.has(String(seat.id))) {
-      return
+    // Этот функционал работает ТОЛЬКО когда isMouseoverSelectingMode НЕ активен.
+    // В режиме ведения/рамки (isMouseoverSelectingMode active), onSeatMouseDown/handleMouseUpForMouseOverMode
+    // полностью отвечают за одиночный клик.
+    if (!isMouseoverSelectingMode.value) {
+      toggleSeatSelect(seat.id) // Это меняет seatsState.value.selectedSeats
+      StateHistoryManager.saveState(seatsState.value)
+
+      // Визуальное обновление
+      objectsLayerRef.value.getNode().clearCache()
+
+      updateSnapshotArea(
+        seat,
+        actualSeats.value,
+        offscreenCanvas.value,
+        spatialIndex,
+        SEAT_SIZE,
+      )
+
+      snapshotImageRef.value.getNode().image(offscreenCanvas.value)
+
+      snapshotImageRef.value
+        .getNode()
+        .getLayer()
+        .batchDraw()
     }
-    // FIXME: заменить на нормальное обновление состояния
-    // emit('changedSeatsState', {
-    //   [seat.id]: seat,
-    // })
-
-    toggleSeatSelect(seat.id)
-
-    StateHistoryManager.saveState(seatsState.value)
-
-    // seatsState.value.selectedSeats[seat.id] = seat
-
-    // FIXME: заменить на нормальное обновление состояния, тут для демо
-    // fillRects.value[seat.id] = true
-
-    // Обновление состояния места
-    // seatsStore.updateSeatStatus(seat.id, 'selected')
-
-    // Обновление UI в слое объектов
-    objectsLayerRef.value.getNode().clearCache()
-
-    // Частичное обновление снимка
-    updateSnapshotArea(
-      seat,
-      actualSeats.value,
-      offscreenCanvas.value,
-      spatialIndex,
-      SEAT_SIZE,
-    )
-
-    // Принудительное обновление снимка
-    snapshotImageRef.value.getNode().image(offscreenCanvas.value)
-
-    snapshotImageRef.value
-      .getNode()
-      .getLayer()
-      .batchDraw()
+  // Если isMouseoverSelectingMode активен, onSeatClick просто игнорируется здесь,
+  // его роль берет на себя onSeatMouseDown/handleMouseUpForMouseOverMode.
   }
 
   const schemeMainRef = ref(null)
@@ -827,7 +821,7 @@
 
   // Для выбора ведением
   const onSeatMouseDown = (placeId, evt) => {
-    if (!isMouseoverSelectingMode.value) {
+    if (!isMouseoverSelectingMode.value) { // Это для режима рамки/ведения, если он активен
       return
     }
 
@@ -835,23 +829,41 @@
       return
     }
 
-    isMouseoverSelecting.value = true
-    isDraggable.value = false
+    isMouseoverSelecting.value = true // Активируем режим "ведения мышью"
+    isDraggable.value = false // Отключаем перетаскивание на время выделения ведением
+    isInitialClick.value = true // Считаем, что это пока чистый клик
+
+    // При mousedown для первого места:
+    // Мы НЕ МЕНЯЕМ seatsState.value.selectedSeats напрямую здесь.
+    // Вместо этого, мы просто записываем его во временные списки
+    // currentSelectedSeats / currentUnselectedSeats.
+    // Визуальный отклик будет через пропсы SchemeSeat или через филтеры.
 
     if (seatsState.value.selectedSeats[placeId]) {
       currentUnselectedSeats.value[placeId] = actualSeats.value[placeId]
+      delete currentSelectedSeats.value[placeId] // Убеждаемся, что не в обоих списках
     } else {
       currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
+      delete currentUnselectedSeats.value[placeId] // Убеждаемся, что не в обоих списках
     }
 
     currentPlaceId.value = String(placeId)
-  }
 
+  // !!! Убираем тяжелые визуальные обновления здесь !!!
+  // objectsLayerRef.value.getNode().clearCache();
+  // createFullSnapshot();
+  }
   // Для выбора ведением
+
 
   const handleMouseMoveForMouseOverMode = () => {
     if (!isMouseoverSelectingMode.value || !isMouseoverSelecting.value) {
       return
+    }
+
+    // Если мышь начала двигаться, это уже не чистый клик
+    if (isInitialClick.value) {
+      isInitialClick.value = false
     }
 
     const stageNode = stageRef.value.getNode()
@@ -866,27 +878,44 @@
     if (node?.name() === 'shape') {
       const placeId = node.id()
 
-      // hover работает на всех местах, но взаимодействие только с интерактивными
       if (!interactiveSeatIds.value.has(String(placeId))) {
         currentPlaceId.value = placeId
+
         return
       }
 
+      // Если мы навели на то же место, что и в прошлый раз, ничего не делаем
       if (placeId === currentPlaceId.value) {
         return
       }
 
-      if (seatsState.value.selectedSeats[placeId]) {
-        if (currentUnselectedSeats.value[placeId]) {
-          delete currentUnselectedSeats.value[placeId]
-        } else {
+      // --- Логика переключения состояния места (только во временных списках!) ---
+      // Это место еще не было тронуто в этом сеансе перетаскивания
+      // (т.е. его нет ни в currentSelectedSeats, ни в currentUnselectedSeats)
+      if (!currentSelectedSeats.value[placeId] && !currentUnselectedSeats.value[placeId]) {
+        if (seatsState.value.selectedSeats[placeId]) {
+          // Было выделено, теперь в списке на развыделение
           currentUnselectedSeats.value[placeId] = actualSeats.value[placeId]
+        } else {
+          // Было не выделено, теперь в списке на выделение
+          currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
         }
       } else if (currentSelectedSeats.value[placeId]) {
+        // Если место уже в currentSelectedSeats, и на него навели снова,
+        // это значит, что мы отменяем выделение.
         delete currentSelectedSeats.value[placeId]
-      } else {
-        currentSelectedSeats.value[placeId] = actualSeats.value[placeId]
+        currentUnselectedSeats.value[placeId] = actualSeats.value[placeId] // Перемещаем в список на развыделение
+      } else if (currentUnselectedSeats.value[placeId]) {
+        // Если место уже в currentUnselectedSeats, и на него навели снова,
+        // это значит, что мы отменяем развыделение.
+        delete currentUnselectedSeats.value[placeId]
+        currentSelectedSeats.value[placeId] = actualSeats.value[placeId] // Перемещаем в список на выделение
       }
+
+
+      // !!! Убираем тяжелые визуальные обновления здесь !!!
+      // objectsLayerRef.value.getNode().clearCache();
+      // createFullSnapshot(); // Эта строка особенно тяжелая
 
       currentPlaceId.value = placeId
     } else {
@@ -901,34 +930,53 @@
 
     isMouseoverSelecting.value = false
     isDraggable.value = true
-    currentPlaceId.value = null
+    currentPlaceId.value = null // Сбрасываем текущее место
 
-    if (!Object.keys(currentSelectedSeats.value).length && !Object.keys(currentUnselectedSeats.value).length) {
-      return
+    // Собираем все изменения из временных списков
+    const seatsToSelect = { ...currentSelectedSeats.value }
+    const seatsToUnselect = { ...currentUnselectedSeats.value }
+
+    // Если это был чистый одиночный клик (без движения мыши)
+    if (isInitialClick.value) {
+      // В этом случае, onSeatMouseDown уже инициировал переключение.
+      // Теперь применяем это к seatsState.value.selectedSeats и сохраняем.
+      // seatsToSelect/seatsToUnselect должны содержать только 1 элемент.
+      if (Object.keys(seatsToSelect).length > 0 || Object.keys(seatsToUnselect).length > 0) {
+        // Применяем изменения к seatsState.value.selectedSeats
+        for (const id in seatsToUnselect) {
+          delete seatsState.value.selectedSeats[id]
+        }
+
+        for (const id in seatsToSelect) {
+          seatsState.value.selectedSeats[id] = actualSeats.value[id]
+        }
+
+        StateHistoryManager.saveState(seatsState.value)
+      }
+    } else {
+      // Если было движение (не чистый клик), значит, это была операция ведения
+      if (Object.keys(seatsToSelect).length > 0 || Object.keys(seatsToUnselect).length > 0) {
+        // Применяем изменения к seatsState.value.selectedSeats
+        for (const id in seatsToUnselect) {
+          delete seatsState.value.selectedSeats[id]
+        }
+
+        for (const id in seatsToSelect) {
+          seatsState.value.selectedSeats[id] = actualSeats.value[id]
+        }
+
+        StateHistoryManager.saveState(seatsState.value)
+      }
     }
 
-    const oldSelectedSeats = { ...seatsState.value.selectedSeats }
-
-    for (const id in currentUnselectedSeats.value) {
-      delete oldSelectedSeats[id]
-    }
-
-    // seatsState.value.selectedSeats = {
-    //   ...oldSelectedSeats,
-    // }
-    // } else {
-    seatsState.value.selectedSeats = {
-      ...oldSelectedSeats,
-      ...currentSelectedSeats.value,
-    }
-    // }
-
-    StateHistoryManager.saveState(seatsState.value)
+    // Очищаем временные списки
     currentSelectedSeats.value = {}
     currentUnselectedSeats.value = {}
+    isInitialClick.value = true // Сбрасываем для следующего mousedown
 
-    // FIXME: заменить на перерисовку области, а не всего снимка
-    createFullSnapshot()
+    // !!! Только ЗДЕСЬ делаем полное визуальное обновление после завершения операции !!!
+    createFullSnapshot() // Обновляем весь снимок один раз
+    objectsLayerRef.value.getNode().clearCache() // Обновляем слой объектов
   }
 
   const addEventListenersForMousOverMode = () => {
@@ -1104,6 +1152,7 @@
       if (!interactiveSeatIds.value.has(String(item.id))) {
         return
       }
+
       const seatRect = {
         x: actualSeats.value[item.id].x,
         y: actualSeats.value[item.id].y,
@@ -1319,6 +1368,7 @@
 
     for (const id in actualSeats.value) {
       const seat = actualSeats.value[id]
+
       if (!seat) {
         continue
       }
