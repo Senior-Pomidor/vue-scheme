@@ -43,7 +43,6 @@
   const seatsChunk = inject('schemeSeatsChunk')
   const selectionFilters = inject('selectionFilters', ref({}))
   const isFullscreen = inject('isFullscreen', ref(false))
-  const hallSchemeApp = inject('hallSchemeApp')
 
   const actualSeats = ref({})
   const interactiveSeatIds = ref(new Set())
@@ -1291,58 +1290,6 @@
   }
   // END: зум для действий
 
-
-  // START: Сброс выделения мест
-  const clearSelectedSeatsHandler = () => {
-    const previouslySelectedIds = Object.keys(seatsState.value.selectedSeats)
-
-    if (!previouslySelectedIds.length) {
-      return
-    }
-
-    seatsState.value.selectedSeats = {}
-    currentSelectedSeats.value = {}
-    currentUnselectedSeats.value = {}
-
-    StateHistoryManager.saveState(seatsState.value)
-
-    objectsLayerRef.value?.getNode()?.clearCache()
-
-    if (offscreenCanvas.value && spatialIndex) {
-      previouslySelectedIds.forEach(id => {
-        const seat = actualSeats.value[id]
-
-        if (!seat) {
-          return
-        }
-
-        updateSnapshotArea(
-          seat,
-          actualSeats.value,
-          offscreenCanvas.value,
-          spatialIndex,
-          SEAT_SIZE,
-        )
-      })
-
-      snapshotImageRef.value?.getNode()?.image(offscreenCanvas.value)
-
-      snapshotImageRef.value?.getNode()?.getLayer()
-        ?.batchDraw()
-    } else {
-      createFullSnapshot()
-    }
-  }
-
-  const registerClearSelectedSeatsListener = () => {
-    if (!hallSchemeApp) {
-      return
-    }
-
-    hallSchemeApp.on(hallSchemeApp.events.clearSelectedSeats, clearSelectedSeatsHandler)
-  }
-  // END: Сброс выделения мест
-
   onMounted(() => {
     handleResize()
 
@@ -1352,8 +1299,6 @@
     activeZoomListenersAdd()
 
     addEventListenersForMousOverMode()
-
-    registerClearSelectedSeatsListener()
   })
 
   onBeforeUnmount(() => {
