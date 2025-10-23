@@ -1,5 +1,8 @@
 <script setup>
+  import { hexToRgba } from '@/utils/hexToRgba'
+
   import { computed, ref, inject } from 'vue'
+
 
   const props = defineProps({
     seat: Object,
@@ -37,6 +40,13 @@
       fill = 'violet'
     }
 
+    if (props.disabled) {
+      fill = hexToRgba(fill, 0.35)
+      stroke = hexToRgba(stroke, 0.35)
+    }
+
+    console.log('fill : ', fill)
+
     return {
       x: props.seat.x,
       y: props.seat.y,
@@ -49,7 +59,9 @@
       listening: true,
       name: 'shape',
       id: String(props.seat.id),
-      opacity: props.disabled ? 0.35 : 1,
+      // FIXME: из-за ебучего опасити всё тормозит
+      // Пиздец блять столько времени убил на эти тормоза сукааааааа
+      // opacity: props.disabled ? 0.35 : 1,
     }
   })
 
@@ -61,11 +73,10 @@
     height: SEAT_SIZE,
     text: props.seat.seat,
     fontSize: 10,
-    fill: '#000',
+    fill: props.disabled ? hexToRgba('#000', 0.35) : '#000',
     align: 'right',
     verticalAlign: 'bottom',
     listening: false,
-    opacity: props.disabled ? 0.35 : 1,
   }))
 
   // Конфиг для текста номера ряда
@@ -76,11 +87,10 @@
     height: SEAT_SIZE,
     text: props.seat.row,
     fontSize: 8,
-    fill: '#000',
+    fill: props.disabled ? hexToRgba('#000', 0.35) : '#000',
     align: 'start',
     verticalAlign: 'top',
     listening: false,
-    opacity: props.disabled ? 0.35 : 1,
   }))
 
 

@@ -29,6 +29,7 @@
 
   import SchemeScaleControls from '@/components/scheme/SchemeScaleControls.vue'
 
+  import { hexToRgba } from '@/utils/hexToRgba'
   import { throttle } from '@/utils/throttle'
 
   import { useUndoRedo } from '@/composables/useUndoRedo'
@@ -264,8 +265,15 @@
 
 
     const isDisabled = !interactiveSeatIds.value.has(String(seat.id))
-    ctx.fillStyle = seatRectConfig.fill
-    ctx.strokeStyle = seatRectConfig.stroke
+
+    if (isDisabled) {
+      ctx.fillStyle = hexToRgba(seatRectConfig.fill, 0.35)
+      ctx.strokeStyle = hexToRgba(seatRectConfig.stroke, 0.35)
+    } else {
+      ctx.fillStyle = seatRectConfig.fill
+      ctx.strokeStyle = seatRectConfig.stroke
+    }
+
     ctx.lineWidth = Number(SNAPSHOT_SCALE) * seatRectConfig.strokeWidth
 
     // Отрисовка места
@@ -279,69 +287,41 @@
       [seatRectConfig.cornerRadius * SNAPSHOT_SCALE],
     )
 
-    if (isDisabled) {
-      ctx.save()
-      ctx.globalAlpha = 0.35
-      ctx.fill()
-      ctx.restore()
-
-      ctx.save()
-      ctx.globalAlpha = 0.35
-      ctx.stroke()
-      ctx.restore()
-    } else {
-      ctx.fill()
-      ctx.stroke()
-    }
+    ctx.fill()
+    ctx.stroke()
 
     // Отрисовка номера места
-    ctx.fillStyle = seatTextConfigSeat.fill
-    ctx.font = `${seatTextConfigSeat.fontSize * SNAPSHOT_SCALE}px Arial` // Увеличиваем размер шрифта
+    if (isDisabled) {
+      ctx.fillStyle = hexToRgba(seatTextConfigSeat.fill, 0.35)
+    } else {
+      ctx.fillStyle = seatTextConfigSeat.fill
+    }
+
+    ctx.font = `${seatTextConfigSeat.fontSize * SNAPSHOT_SCALE}px Arial`
     ctx.textAlign = seatTextConfigSeat.align
     ctx.textBaseline = seatTextConfigSeat.verticalAlign
 
+    ctx.fillText(
+      seat.seat,
+      scaledX + scaledSize + seatTextConfigSeat.OFFSET_X * SNAPSHOT_SCALE,
+      scaledY + scaledSize + seatTextConfigSeat.OFFSET_Y * SNAPSHOT_SCALE,
+    )
+
     if (isDisabled) {
-      ctx.save()
-      ctx.globalAlpha = 0.35
-
-      ctx.fillText(
-        seat.seat,
-        scaledX + scaledSize + seatTextConfigSeat.OFFSET_X * SNAPSHOT_SCALE,
-        scaledY + scaledSize + seatTextConfigSeat.OFFSET_Y * SNAPSHOT_SCALE,
-      )
-
-      ctx.restore()
+      ctx.fillStyle = hexToRgba(seatTextConfigRow.fill, 0.35)
     } else {
-      ctx.fillText(
-        seat.seat,
-        scaledX + scaledSize + seatTextConfigSeat.OFFSET_X * SNAPSHOT_SCALE,
-        scaledY + scaledSize + seatTextConfigSeat.OFFSET_Y * SNAPSHOT_SCALE,
-      )
+      ctx.fillStyle = seatTextConfigRow.fill
     }
 
-    // Отрисовка номера ряда
-    ctx.font = `${seatTextConfigRow.fontSize * SNAPSHOT_SCALE}px Arial` // Увеличиваем размер шрифта
+    ctx.font = `${seatTextConfigRow.fontSize * SNAPSHOT_SCALE}px Arial`
     ctx.textAlign = seatTextConfigRow.align
     ctx.textBaseline = seatTextConfigRow.verticalAlign
 
-    if (isDisabled) {
-      ctx.save()
-      ctx.globalAlpha = 0.35
-
-      ctx.fillText(
-        seat.row,
-        scaledX + seatTextConfigRow.OFFSET_X * SNAPSHOT_SCALE,
-        scaledY + seatTextConfigRow.OFFSET_Y * SNAPSHOT_SCALE,
-      )
-
-      ctx.restore()
-    } else {
-      ctx.fillText(
-        seat.row,
-        scaledX + seatTextConfigRow.OFFSET_X * SNAPSHOT_SCALE,
-        scaledY + seatTextConfigRow.OFFSET_Y * SNAPSHOT_SCALE,
-      )
-    }
+    ctx.fillText(
+      seat.row,
+      scaledX + seatTextConfigRow.OFFSET_X * SNAPSHOT_SCALE,
+      scaledY + seatTextConfigRow.OFFSET_Y * SNAPSHOT_SCALE,
+    )
   }
 
   // Построение пространственного индекса (R-tree)
@@ -791,6 +771,7 @@
     StateHistoryManager.clearState()
     StateHistoryManager.saveState(seatsState.value)
 
+    // FIXME: тормоза в этой функции
     recomputeInteractiveSeats()
 
     // initOffscreenCanvas()
@@ -1460,11 +1441,11 @@
         <SchemeSeat
           v-for="id in visibleSeatIds"
           :key="id"
+          :disabled="!interactiveSeatIds.has(String(id))"
           :seat="actualSeats[id]"
           :selected="!!seatsState.selectedSeats[id] || Boolean(currentSelectedSeats[id])"
           :unselected="!!currentUnselectedSeats[id]"
           :is-selection-mode="isMouseoverSelectingMode"
-          :disabled="!interactiveSeatIds.has(String(id))"
           @click="onSeatClick"
           @mouseenter="onMouseEnter"
           @mouseleave="onMouseLeave"
