@@ -32,12 +32,16 @@
       stroke = stroke[0]
     }
 
-    if (!props.disabled && (isHovered.value && !props.isSelectionMode || props.selected)) {
-      fill = 'blue'
+    if (!props.disabled && isHovered.value && !props.isSelectionMode) {
+      fill = '#0000FF' // blue
+    }
+
+    if (props.selected) {
+      fill = '#0000FF' // blue
     }
 
     if (props.unselected) {
-      fill = 'violet'
+      fill = '#EE82EE' // violet
     }
 
     if (props.disabled) {
@@ -53,7 +57,7 @@
       width: SEAT_SIZE,
       height: SEAT_SIZE,
       fill: fill,
-      stroke: props.selected ? 'lightgreen' : stroke,
+      stroke: props.selected ? '#90ee90' : stroke, // '#90ee90' - lightgreen
       strokeWidth: 1,
       cornerRadius: 4,
       listening: true,

@@ -144,7 +144,7 @@
       }
 
       if (seatsState.value.selectedSeats[seat.id]) {
-        color = 'blue'
+        color = '#0000FF' // blue
       }
 
       return color
@@ -162,7 +162,7 @@
 
       // FIXME: временно для выделения мест
       if (fillRects.value[seat.id]) {
-        color = 'lightgreen'
+        color = '#90ee90' // lightgreen
       }
 
       return color
@@ -783,6 +783,12 @@
     // updateVisibleSeats()
   }, { deep: true })
 
+  watch(selectionFilters, () => {
+    recomputeInteractiveSeats()
+    updateVisibleSeats()
+    createFullSnapshot()
+  }, { deep: true })
+
   watch(isFullscreen, () => {
     nextTick(() => {
       handleResize()
@@ -1397,9 +1403,69 @@
   // Пробрасываем константы в компонент через provide
   provide('SEAT_SIZE', SEAT_SIZE)
 
-  // Простая фильтрация мест: доступно к взаимодействию только status === 'closed'
+  // Проверка, проходит ли место по фильтрам
+  // TODO: сделать универсальным для всех параметров
+  const seatPassesFilters = (seat, filters) => {
+    if (!filters || !filters.attrs) {
+      return true
+    }
+
+    const attrs = filters.attrs
+
+    // Проверка фильтра по status
+    if (attrs.status && Array.isArray(attrs.status) && attrs.status.length > 0) {
+      if (!attrs.status.includes(seat.status)) {
+        return false
+      }
+    }
+
+    // Проверка фильтра по price
+    if (attrs.price && Array.isArray(attrs.price) && attrs.price.length > 0) {
+      const seatPrice = parseInt(seat.price)
+      const filterPrices = attrs.price.map(p => parseInt(p))
+
+      if (!filterPrices.includes(seatPrice)) {
+        return false
+      }
+    }
+
+    // Проверка фильтра по sell_channels
+    if (attrs.sell_channels && typeof attrs.sell_channels === 'object') {
+      const channels = attrs.sell_channels
+      const hasTrueFilter = Object.values(channels).some(v => v === true)
+
+      // Если есть хоть один true в фильтре, проверяем совпадения
+      if (hasTrueFilter) {
+        const seatChannels = seat.sell_channels || {}
+        let hasMatch = false
+
+        for (const key in channels) {
+          if (channels[key] === true && seatChannels[key] === true) {
+            hasMatch = true
+            break
+          }
+        }
+
+        if (!hasMatch) {
+          return false
+        }
+      }
+    }
+
+    // Проверка фильтра по reserved_by_user
+    if (attrs.reserved_by_user !== undefined && attrs.reserved_by_user !== null) {
+      if (seat.reserved_by_user !== attrs.reserved_by_user) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  // Фильтрация мест по selectionFilters
   const recomputeInteractiveSeats = () => {
     const newSet = new Set()
+    const filters = selectionFilters.value
 
     for (const id in actualSeats.value) {
       const seat = actualSeats.value[id]
@@ -1408,7 +1474,8 @@
         continue
       }
 
-      if (seat.status == 'available') {
+      // Проверяем, проходит ли место по всем фильтрам
+      if (seatPassesFilters(seat, filters)) {
         newSet.add(String(id))
       }
     }
